@@ -16,12 +16,12 @@
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
     <!-- 
         Enhancement Plan:
-        1.  Typography Upgrade: Switched to the "Poppins" font for a richer, more modern look.
-        2.  Fluid Layout: Implemented responsive typography and spacing using Tailwind's breakpoint system for a fully flexible layout on all screen sizes.
-        3.  Responsive Clock: Positioned the clock in the sidebar for desktop and moved it to the header for a better mobile experience.
-        4.  Dynamic Colors: Implemented JavaScript logic for the sidebar clock widget's background color to cycle through a predefined palette every 10 minutes.
-        5.  Real-time Updates: The clock updates every second to show the current time.
-        6.  Mobile Responsiveness: Ensured all content displays uniformly and cleanly on mobile devices.
+        1.  Minimalist Layout: Constrained the max-width of the main container for a more focused, "cute" look.
+        2.  Softer UI: Increased border-radius on all elements (cards, buttons) for a rounder, more approachable aesthetic.
+        3.  Optimized Content Size: Adjusted font sizes within cards and lists for a more compact and clean appearance, ensuring content in the "Advanced & M Language" tab and others is fully responsive.
+        4.  Responsive Clock: Positioned the clock in the sidebar for desktop and moved it to the header for a better mobile experience.
+        5.  Dynamic Colors: Implemented JavaScript logic for the sidebar clock widget's background color to cycle through a predefined palette every 10 minutes.
+        6.  Fluid & Responsive: Ensured all content displays uniformly and cleanly on all devices.
     -->
     <style>
         :root {
@@ -46,7 +46,7 @@
         .sub-nav-link.active { border-color: var(--primary-color); color: var(--primary-color); }
         .content-section, .sub-content { display: none; animation: fadeIn 0.5s; }
         .content-section.active, .sub-content.active { display: block; }
-        .code-block { background-color: #1a1a1a; color: #e2e8f0; padding: 1.5rem; border-radius: 0.5rem; overflow-x: auto; font-family: 'SF Mono', 'Courier New', monospace; font-size: 0.9em; line-height: 1.7; border: 1px solid var(--border-color); }
+        .code-block { background-color: #1a1a1a; color: #e2e8f0; padding: 1.5rem; border-radius: 1rem; overflow-x: auto; font-family: 'SF Mono', 'Courier New', monospace; font-size: 0.9em; line-height: 1.7; border: 1px solid var(--border-color); }
         .code-block .comment { color: #71717a; }
         .code-block .function { color: #4ade80; }
         .code-block .string { color: #facc15; }
@@ -71,7 +71,6 @@
 
         @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
         
-        /* Media query for smaller screens to make join diagram responsive */
         @media (max-width: 400px) {
             .join-diagram { height: 100px; }
             .join-diagram .circle { width: 80px; height: 80px; font-size: 0.875rem; }
@@ -90,25 +89,25 @@
         <aside id="sidebar" class="w-64 bg-black p-6 border-r border-slate-800 fixed h-full transform -translate-x-full md:translate-x-0 transition-transform duration-300 ease-in-out z-30 flex flex-col">
             <div>
                 <div class="flex justify-between items-center mb-10">
-                    <h2 class="text-2xl font-bold text-white tracking-wider">Power Query</h2>
+                    <h2 class="text-xl font-bold text-white tracking-wider">Power Query</h2>
                 </div>
                 <nav id="main-nav">
-                    <ul class="space-y-3">
-                        <li><a href="#intro" class="nav-link active flex items-center p-3 rounded-lg font-medium">Introduction</a></li>
-                        <li><a href="#connectors" class="nav-link flex items-center p-3 rounded-lg font-medium">Data Connectors</a></li>
-                        <li><a href="#getting-started" class="nav-link flex items-center p-3 rounded-lg font-medium">Basic Transformations</a></li>
-                        <li><a href="#intermediate" class="nav-link flex items-center p-3 rounded-lg font-medium">Intermediate Concepts</a></li>
-                        <li><a href="#advanced" class="nav-link flex items-center p-3 rounded-lg font-medium">Advanced & M Language</a></li>
-                        <li><a href="#use-cases" class="nav-link flex items-center p-3 rounded-lg font-medium">Practical Use Cases</a></li>
-                        <li><a href="#best-practices" class="nav-link flex items-center p-3 rounded-lg font-medium">Best Practices</a></li>
+                    <ul class="space-y-2">
+                        <li><a href="#intro" class="nav-link active flex items-center p-3 rounded-xl font-medium">Introduction</a></li>
+                        <li><a href="#connectors" class="nav-link flex items-center p-3 rounded-xl font-medium">Data Connectors</a></li>
+                        <li><a href="#getting-started" class="nav-link flex items-center p-3 rounded-xl font-medium">Basic Transformations</a></li>
+                        <li><a href="#intermediate" class="nav-link flex items-center p-3 rounded-xl font-medium">Intermediate Concepts</a></li>
+                        <li><a href="#advanced" class="nav-link flex items-center p-3 rounded-xl font-medium">Advanced & M Language</a></li>
+                        <li><a href="#use-cases" class="nav-link flex items-center p-3 rounded-xl font-medium">Practical Use Cases</a></li>
+                        <li><a href="#best-practices" class="nav-link flex items-center p-3 rounded-xl font-medium">Best Practices</a></li>
                     </ul>
                 </nav>
             </div>
             <!-- Desktop Date/Time Widget -->
             <div class="mt-auto hidden md:block">
-                 <div id="datetime-widget" class="p-4 rounded-lg text-center text-white font-medium">
-                    <div id="time" class="text-xl font-semibold"></div>
-                    <div id="date" class="text-sm opacity-75"></div>
+                 <div id="datetime-widget" class="p-4 rounded-2xl text-center text-white font-medium">
+                    <div id="time" class="text-lg font-semibold"></div>
+                    <div id="date" class="text-xs opacity-75"></div>
                 </div>
             </div>
         </aside>
@@ -116,7 +115,7 @@
         <!-- Mobile Header -->
         <header class="md:hidden fixed top-0 left-0 right-0 bg-black/80 backdrop-blur-sm z-20 border-b border-slate-800">
             <div class="flex items-center justify-between p-4">
-                <h1 class="text-xl font-bold text-white">Power Query Guide</h1>
+                <h1 class="text-lg font-bold text-white">Power Query Guide</h1>
                 <div class="flex items-center gap-4">
                     <!-- Mobile Date/Time Widget -->
                     <div id="datetime-widget-mobile" class="text-right">
@@ -131,10 +130,10 @@
         </header>
 
         <!-- Main Content -->
-        <main class="flex-1 md:ml-64 p-4 pt-24 md:p-8 lg:p-12">
+        <main class="flex-1 md:ml-64 p-4 pt-24 md:p-8 lg:p-12 max-w-7xl mx-auto">
             <header class="mb-10 md:mb-12">
-                <h1 id="main-title" class="text-3xl sm:text-4xl md:text-5xl font-bold text-white">Welcome to the Guide</h1>
-                <p id="main-subtitle" class="text-lg md:text-xl text-slate-400 mt-2">Select a topic to begin your journey.</p>
+                <h1 id="main-title" class="text-3xl sm:text-4xl font-bold text-white">Welcome to the Guide</h1>
+                <p id="main-subtitle" class="text-md md:text-lg text-slate-400 mt-2">Select a topic to begin your journey.</p>
             </header>
 
             <!-- Introduction Section -->
@@ -148,36 +147,36 @@
                     </ul>
                 </nav>
                 <div id="intro-what" class="sub-content active">
-                    <div class="bg-slate-900 p-6 sm:p-8 md:p-10 rounded-lg">
-                        <h2 class="text-3xl md:text-4xl font-bold mb-5">What is Power Query?</h2>
-                        <p class="mb-6 text-lg leading-relaxed"><strong>Power Query</strong> is a world-class data transformation and data preparation engine. It provides an intuitive graphical interface for discovering, connecting to, and shaping data from a vast array of sources. The transformations you build are recorded as repeatable steps, forming a query that can be refreshed on demand.</p>
-                        <p class="text-lg leading-relaxed">Think of it as your <em>personal data butler</em>, automating the tedious 80% of work that is data wrangling, so you can focus on the valuable 20% that is <strong>analysis and insight</strong>. It's the key to unlocking consistent, reliable, and automated data workflows.</p>
+                    <div class="bg-slate-900 p-6 sm:p-8 md:p-10 rounded-2xl">
+                        <h2 class="text-2xl md:text-3xl font-bold mb-5">What is Power Query?</h2>
+                        <p class="mb-6 text-base md:text-lg leading-relaxed"><strong>Power Query</strong> is a world-class data transformation and data preparation engine. It provides an intuitive graphical interface for discovering, connecting to, and shaping data from a vast array of sources. The transformations you build are recorded as repeatable steps, forming a query that can be refreshed on demand.</p>
+                        <p class="text-base md:text-lg leading-relaxed">Think of it as your <em>personal data butler</em>, automating the tedious 80% of work that is data wrangling, so you can focus on the valuable 20% that is <strong>analysis and insight</strong>. It's the key to unlocking consistent, reliable, and automated data workflows.</p>
                     </div>
                 </div>
                 <div id="intro-etl" class="sub-content">
-                    <div class="bg-slate-900 p-6 sm:p-8 md:p-10 rounded-lg">
-                        <h2 class="text-3xl md:text-4xl font-bold mb-5">The ETL Process, Demystified</h2>
-                        <p class="mb-6 text-lg leading-relaxed">Power Query is a quintessential <strong>ETL</strong> tool. ETL stands for <em>Extract, Transform, and Load</em>—the fundamental process of modern data integration.</p>
-                        <ul class="space-y-6 text-lg">
+                    <div class="bg-slate-900 p-6 sm:p-8 md:p-10 rounded-2xl">
+                        <h2 class="text-2xl md:text-3xl font-bold mb-5">The ETL Process, Demystified</h2>
+                        <p class="mb-6 text-base md:text-lg leading-relaxed">Power Query is a quintessential <strong>ETL</strong> tool. ETL stands for <em>Extract, Transform, and Load</em>—the fundamental process of modern data integration.</p>
+                        <ul class="space-y-6 text-base md:text-lg">
                             <li class="flex items-start">
-                                <span class="text-3xl font-bold text-indigo-400 mr-5">E</span>
+                                <span class="text-2xl font-bold text-indigo-400 mr-5">E</span>
                                 <div><strong>Extract:</strong> This is the initial step of connecting to and retrieving data from its native source. Whether it's a simple Excel file, a sprawling SQL database, a dynamic web page, or hundreds of other sources, Power Query establishes the connection and pulls in the raw data.</div>
                             </li>
                             <li class="flex items-start">
-                                <span class="text-3xl font-bold text-emerald-400 mr-5">T</span>
+                                <span class="text-2xl font-bold text-emerald-400 mr-5">T</span>
                                 <div><strong>Transform:</strong> This is where the magic happens—the very heart of Power Query's power. After extraction, you clean, shape, and enrich the data. This involves removing errors, changing data types, splitting columns, merging tables, and applying critical business logic to sculpt the data into a perfectly usable format for analysis.</div>
                             </li>
                             <li class="flex items-start">
-                                <span class="text-3xl font-bold text-rose-400 mr-5">L</span>
+                                <span class="text-2xl font-bold text-rose-400 mr-5">L</span>
                                 <div><strong>Load:</strong> Once your data is pristine and perfectly transformed, you load it to a final destination. This could be a worksheet in Excel, the advanced Data Model in Power BI, or another target where it can be analyzed, visualized, and turned into actionable intelligence.</div>
                             </li>
                         </ul>
                     </div>
                 </div>
                 <div id="intro-why" class="sub-content">
-                     <div class="bg-slate-900 p-6 sm:p-8 md:p-10 rounded-lg">
-                         <h3 class="text-3xl md:text-4xl font-bold mb-5">Why is Power Query a Game-Changer?</h3>
-                         <ul class="list-disc list-inside space-y-5 text-lg">
+                     <div class="bg-slate-900 p-6 sm:p-8 md:p-10 rounded-2xl">
+                         <h3 class="text-2xl md:text-3xl font-bold mb-5">Why is Power Query a Game-Changer?</h3>
+                         <ul class="list-disc list-inside space-y-5 text-base md:text-lg">
                              <li><strong>Radical Automation:</strong> Record a complex set of cleaning steps just once. When new data arrives, simply click "Refresh" to execute the entire process flawlessly in seconds, <em>saving countless hours of manual work</em>.</li>
                              <li><strong>Democratization of Data:</strong> Empowers business users, analysts, and citizen developers to perform sophisticated data transformations that previously required dedicated IT or database specialists. <em>You are in control.</em></li>
                              <li><strong>Unyielding Consistency and Accuracy:</strong> By creating a repeatable, automated process, you eliminate the risk of manual errors and ensure that critical business rules are applied consistently, every single time.</li>
@@ -187,16 +186,16 @@
                      </div>
                 </div>
                 <div id="intro-where" class="sub-content">
-                    <div class="bg-slate-900 p-6 sm:p-8 md:p-10 rounded-lg">
-                        <h3 class="text-3xl md:text-4xl font-bold mb-5">Where Does Power Query Live?</h3>
-                        <p class="mb-6 text-lg">Power Query is the unified data preparation tool across the entire Microsoft Power Platform and beyond, ensuring a consistent, powerful experience wherever you work with data:</p>
+                    <div class="bg-slate-900 p-6 sm:p-8 md:p-10 rounded-2xl">
+                        <h3 class="text-2xl md:text-3xl font-bold mb-5">Where Does Power Query Live?</h3>
+                        <p class="mb-6 text-base md:text-lg">Power Query is the unified data preparation tool across the entire Microsoft Power Platform and beyond, ensuring a consistent, powerful experience wherever you work with data:</p>
                         <div class="grid grid-cols-2 md:grid-cols-3 gap-4 md:gap-5 text-center">
-                            <div class="bg-slate-800 p-5 rounded-lg font-medium">Microsoft Excel</div>
-                            <div class="bg-slate-800 p-5 rounded-lg font-medium">Power BI Desktop</div>
-                            <div class="bg-slate-800 p-5 rounded-lg font-medium">Power Platform</div>
-                            <div class="bg-slate-800 p-5 rounded-lg font-medium">Azure Data Factory</div>
-                            <div class="bg-slate-800 p-5 rounded-lg font-medium">SQL Server Analysis Services</div>
-                            <div class="bg-slate-800 p-5 rounded-lg font-medium">Dataverse</div>
+                            <div class="bg-slate-800 p-5 rounded-xl font-medium">Microsoft Excel</div>
+                            <div class="bg-slate-800 p-5 rounded-xl font-medium">Power BI Desktop</div>
+                            <div class="bg-slate-800 p-5 rounded-xl font-medium">Power Platform</div>
+                            <div class="bg-slate-800 p-5 rounded-xl font-medium">Azure Data Factory</div>
+                            <div class="bg-slate-800 p-5 rounded-xl font-medium">SQL Server Analysis Services</div>
+                            <div class="bg-slate-800 p-5 rounded-xl font-medium">Dataverse</div>
                         </div>
                     </div>
                 </div>
@@ -204,41 +203,41 @@
             
             <!-- Data Connectors Section -->
             <section id="connectors" class="content-section">
-                 <div class="bg-slate-900 p-6 sm:p-8 md:p-10 rounded-lg">
-                    <h2 class="text-3xl md:text-4xl font-bold mb-4">Connecting to Your Data Universe</h2>
-                    <p class="mb-8 text-lg">Power Query's true strength begins with its vast and ever-growing library of connectors, allowing you to pull data from virtually anywhere and everywhere.</p>
+                 <div class="bg-slate-900 p-6 sm:p-8 md:p-10 rounded-2xl">
+                    <h2 class="text-2xl md:text-3xl font-bold mb-4">Connecting to Your Data Universe</h2>
+                    <p class="mb-8 text-base md:text-lg">Power Query's true strength begins with its vast and ever-growing library of connectors, allowing you to pull data from virtually anywhere and everywhere.</p>
                     <div class="space-y-8">
                         <div>
                             <h3 class="text-xl md:text-2xl font-semibold mb-4">File Sources</h3>
-                            <p class="mb-5">Effortlessly connect to local files, network shares, and SharePoint sites. The <strong>"From Folder"</strong> connector is exceptionally powerful, enabling you to combine and process hundreds of similar files in a single, automated step.</p>
+                            <p class="mb-5 text-sm md:text-base leading-relaxed">Effortlessly connect to local files, network shares, and SharePoint sites. The <strong>"From Folder"</strong> connector is exceptionally powerful, enabling you to combine and process hundreds of similar files in a single, automated step.</p>
                             <div class="flex flex-wrap gap-4">
-                                <span class="bg-blue-900 text-blue-300 text-sm font-medium me-2 px-3 py-1 rounded-full">Excel Workbook</span>
-                                <span class="bg-gray-700 text-gray-300 text-sm font-medium me-2 px-3 py-1 rounded-full">Text/CSV</span>
-                                <span class="bg-yellow-900 text-yellow-300 text-sm font-medium me-2 px-3 py-1 rounded-full">JSON</span>
-                                <span class="bg-red-900 text-red-300 text-sm font-medium me-2 px-3 py-1 rounded-full">PDF</span>
-                                <span class="bg-green-900 text-green-300 text-sm font-medium me-2 px-3 py-1 rounded-full">Folder</span>
+                                <span class="bg-blue-900 text-blue-300 text-sm font-medium me-2 px-4 py-1.5 rounded-full">Excel Workbook</span>
+                                <span class="bg-gray-700 text-gray-300 text-sm font-medium me-2 px-4 py-1.5 rounded-full">Text/CSV</span>
+                                <span class="bg-yellow-900 text-yellow-300 text-sm font-medium me-2 px-4 py-1.5 rounded-full">JSON</span>
+                                <span class="bg-red-900 text-red-300 text-sm font-medium me-2 px-4 py-1.5 rounded-full">PDF</span>
+                                <span class="bg-green-900 text-green-300 text-sm font-medium me-2 px-4 py-1.5 rounded-full">Folder</span>
                             </div>
                         </div>
                         <div>
                             <h3 class="text-xl md:text-2xl font-semibold mb-4">Database Sources</h3>
-                            <p class="mb-5">Pull data directly from enterprise-grade relational databases. For many of these sources, Power Query can leverage <em>Query Folding</em> to push transformation logic back to the source server, dramatically accelerating performance.</p>
+                            <p class="mb-5 text-sm md:text-base leading-relaxed">Pull data directly from enterprise-grade relational databases. For many of these sources, Power Query can leverage <em>Query Folding</em> to push transformation logic back to the source server, dramatically accelerating performance.</p>
                              <div class="flex flex-wrap gap-4">
-                                <span class="bg-purple-900 text-purple-300 text-sm font-medium me-2 px-3 py-1 rounded-full">SQL Server</span>
-                                <span class="bg-indigo-900 text-indigo-300 text-sm font-medium me-2 px-3 py-1 rounded-full">Oracle</span>
-                                <span class="bg-pink-900 text-pink-300 text-sm font-medium me-2 px-3 py-1 rounded-full">MySQL</span>
-                                <span class="bg-sky-900 text-sky-300 text-sm font-medium me-2 px-3 py-1 rounded-full">PostgreSQL</span>
-                                <span class="bg-amber-900 text-amber-300 text-sm font-medium me-2 px-3 py-1 rounded-full">Teradata</span>
+                                <span class="bg-purple-900 text-purple-300 text-sm font-medium me-2 px-4 py-1.5 rounded-full">SQL Server</span>
+                                <span class="bg-indigo-900 text-indigo-300 text-sm font-medium me-2 px-4 py-1.5 rounded-full">Oracle</span>
+                                <span class="bg-pink-900 text-pink-300 text-sm font-medium me-2 px-4 py-1.5 rounded-full">MySQL</span>
+                                <span class="bg-sky-900 text-sky-300 text-sm font-medium me-2 px-4 py-1.5 rounded-full">PostgreSQL</span>
+                                <span class="bg-amber-900 text-amber-300 text-sm font-medium me-2 px-4 py-1.5 rounded-full">Teradata</span>
                             </div>
                         </div>
                         <div>
                             <h3 class="text-xl md:text-2xl font-semibold mb-4">Online & Cloud Sources</h3>
-                            <p class="mb-5">Connect to the modern data landscape. Scrape data from web pages, consume APIs, and integrate with a huge range of cloud services and SaaS platforms.</p>
+                            <p class="mb-5 text-sm md:text-base leading-relaxed">Connect to the modern data landscape. Scrape data from web pages, consume APIs, and integrate with a huge range of cloud services and SaaS platforms.</p>
                              <div class="flex flex-wrap gap-4">
-                                <span class="bg-rose-900 text-rose-300 text-sm font-medium me-2 px-3 py-1 rounded-full">Web</span>
-                                <span class="bg-teal-900 text-teal-300 text-sm font-medium me-2 px-3 py-1 rounded-full">SharePoint List</span>
-                                <span class="bg-cyan-900 text-cyan-300 text-sm font-medium me-2 px-3 py-1 rounded-full">Azure SQL DB</span>
-                                <span class="bg-lime-900 text-lime-300 text-sm font-medium me-2 px-3 py-1 rounded-full">Salesforce</span>
-                                <span class="bg-fuchsia-900 text-fuchsia-300 text-sm font-medium me-2 px-3 py-1 rounded-full">OData Feed</span>
+                                <span class="bg-rose-900 text-rose-300 text-sm font-medium me-2 px-4 py-1.5 rounded-full">Web</span>
+                                <span class="bg-teal-900 text-teal-300 text-sm font-medium me-2 px-4 py-1.5 rounded-full">SharePoint List</span>
+                                <span class="bg-cyan-900 text-cyan-300 text-sm font-medium me-2 px-4 py-1.5 rounded-full">Azure SQL DB</span>
+                                <span class="bg-lime-900 text-lime-300 text-sm font-medium me-2 px-4 py-1.5 rounded-full">Salesforce</span>
+                                <span class="bg-fuchsia-900 text-fuchsia-300 text-sm font-medium me-2 px-4 py-1.5 rounded-full">OData Feed</span>
                             </div>
                         </div>
                     </div>
@@ -247,24 +246,24 @@
 
             <!-- Getting Started Section -->
             <section id="getting-started" class="content-section">
-                 <div class="bg-slate-900 p-6 sm:p-8 md:p-10 rounded-lg">
-                    <h2 class="text-3xl md:text-4xl font-bold mb-4">Live Transformation Demo</h2>
-                    <p class="mb-8 text-lg">This interactive demo simulates the Power Query editor. Click a transformation button to manipulate the table. Notice how the M Code below the table updates with each step, showing you exactly what Power Query writes behind the scenes.</p>
+                 <div class="bg-slate-900 p-6 sm:p-8 md:p-10 rounded-2xl">
+                    <h2 class="text-2xl md:text-3xl font-bold mb-4">Live Transformation Demo</h2>
+                    <p class="mb-8 text-base md:text-lg">This interactive demo simulates the Power Query editor. Click a transformation button to manipulate the table. Notice how the M Code below the table updates with each step.</p>
                     <div class="grid lg:grid-cols-5 gap-6 md:gap-10">
                         <div class="lg:col-span-2">
                             <h3 class="text-xl md:text-2xl font-semibold mb-4">Transformation Steps</h3>
                             <div id="transform-controls" class="flex flex-col space-y-3">
-                                <button id="reset-btn" class="w-full text-left p-4 bg-indigo-600 text-white rounded-md hover:bg-indigo-500 transition font-semibold">Reset Data</button>
-                                <button class="transform-btn interactive-card w-full text-left p-4" data-transform="change-type">1. Change Data Type</button>
-                                <button class="transform-btn interactive-card w-full text-left p-4" data-transform="split-column">2. Split Column</button>
-                                <button class="transform-btn interactive-card w-full text-left p-4" data-transform="filter-rows">3. Filter Rows</button>
-                                <button class="transform-btn interactive-card w-full text-left p-4" data-transform="add-column">4. Add Conditional Column</button>
-                                <button class="transform-btn interactive-card w-full text-left p-4" data-transform="group-by">5. Group and Aggregate</button>
+                                <button id="reset-btn" class="w-full text-left p-4 bg-indigo-600 text-white rounded-xl hover:bg-indigo-500 transition font-semibold">Reset Data</button>
+                                <button class="transform-btn interactive-card w-full text-left p-4 rounded-xl" data-transform="change-type">1. Change Data Type</button>
+                                <button class="transform-btn interactive-card w-full text-left p-4 rounded-xl" data-transform="split-column">2. Split Column</button>
+                                <button class="transform-btn interactive-card w-full text-left p-4 rounded-xl" data-transform="filter-rows">3. Filter Rows</button>
+                                <button class="transform-btn interactive-card w-full text-left p-4 rounded-xl" data-transform="add-column">4. Add Conditional Column</button>
+                                <button class="transform-btn interactive-card w-full text-left p-4 rounded-xl" data-transform="group-by">5. Group and Aggregate</button>
                             </div>
                         </div>
                         <div class="lg:col-span-3">
                             <h3 id="table-title" class="text-xl md:text-2xl font-semibold mb-4">Data Preview</h3>
-                            <div class="overflow-x-auto border border-slate-700 rounded-lg mb-6">
+                            <div class="overflow-x-auto border border-slate-700 rounded-xl mb-6">
                                 <table id="demo-table" class="w-full text-sm text-left text-slate-400">
                                     <thead id="demo-table-head" class="text-xs uppercase bg-slate-800"></thead>
                                     <tbody id="demo-table-body"></tbody>
@@ -281,9 +280,9 @@
             
             <!-- Intermediate Section -->
             <section id="intermediate" class="content-section">
-                <div class="bg-slate-900 p-6 sm:p-8 md:p-10 rounded-lg mb-6 md:mb-8">
-                    <h2 class="text-3xl md:text-4xl font-bold mb-4">Visualizing Merge Joins</h2>
-                    <p class="mb-8 text-lg">Merging is a fundamental concept for enriching your data. Power Query offers several "Join Kinds" to control exactly how tables are combined. Select a join type below to see a visual representation of the result.</p>
+                <div class="bg-slate-900 p-6 sm:p-8 md:p-10 rounded-2xl mb-6 md:mb-8">
+                    <h2 class="text-2xl md:text-3xl font-bold mb-4">Visualizing Merge Joins</h2>
+                    <p class="mb-8 text-base md:text-lg">Merging is a fundamental concept for enriching your data. Power Query offers several "Join Kinds" to control exactly how tables are combined. Select a join type below to see a visual representation of the result.</p>
                     <div id="join-controls" class="flex flex-wrap justify-center gap-3 mb-8">
                         <button class="join-btn p-2 px-5 bg-slate-800 text-indigo-300 rounded-full text-sm font-semibold" data-join="inner">Inner</button>
                         <button class="join-btn p-2 px-5 bg-slate-800 text-indigo-300 rounded-full text-sm font-semibold" data-join="left">Left Outer</button>
@@ -302,24 +301,24 @@
                     </div>
                     <p id="join-explanation" class="text-center mt-6 text-slate-400 font-medium h-10"></p>
                 </div>
-                <div class="bg-slate-900 p-6 sm:p-8 md:p-10 rounded-lg mb-6 md:mb-8">
-                    <h2 class="text-3xl md:text-4xl font-bold mb-4">Append vs. Merge: A Critical Distinction</h2>
-                    <p class="mb-8 text-lg">It's crucial to understand the difference between these two core operations. Choosing the wrong one can lead to unexpected results.</p>
+                <div class="bg-slate-900 p-6 sm:p-8 md:p-10 rounded-2xl mb-6 md:mb-8">
+                    <h2 class="text-2xl md:text-3xl font-bold mb-4">Append vs. Merge: A Critical Distinction</h2>
+                    <p class="mb-8 text-base md:text-lg">It's crucial to understand the difference between these two core operations. Choosing the wrong one can lead to unexpected results.</p>
                     <div class="grid md:grid-cols-2 gap-8 md:gap-10 text-center">
                         <div>
                             <h3 class="text-xl md:text-2xl font-semibold mb-3">Append Queries (Adding Rows)</h3>
-                            <p class="leading-relaxed">Think of this as <strong>stacking tables</strong> on top of each other. Append adds the rows from one table to the end of another. For this to work well, the tables should have similar column structures and names.</p>
+                            <p class="leading-relaxed text-sm md:text-base">Think of this as <strong>stacking tables</strong> on top of each other. Append adds the rows from one table to the end of another. For this to work well, the tables should have similar column structures and names.</p>
                         </div>
                         <div>
                             <h3 class="text-xl md:text-2xl font-semibold mb-3">Merge Queries (Adding Columns)</h3>
-                            <p class="leading-relaxed">Think of this as a <strong>VLOOKUP on steroids</strong>. Merge enriches a table by adding new columns from a second table, based on a matching key column that exists in both.</p>
+                            <p class="leading-relaxed text-sm md:text-base">Think of this as a <strong>VLOOKUP on steroids</strong>. Merge enriches a table by adding new columns from a second table, based on a matching key column that exists in both.</p>
                         </div>
                     </div>
                 </div>
-                 <div class="bg-slate-900 p-6 sm:p-8 md:p-10 rounded-lg">
-                    <h2 class="text-3xl md:text-4xl font-bold mb-4">Data Profiling: Your First Line of Defense</h2>
-                    <p class="mb-8 text-lg">Before you transform, you must understand your data's health. Power Query provides powerful, built-in profiling tools to quickly assess data quality, distribution, and patterns right inside the editor.</p>
-                     <ul class="list-disc list-inside space-y-4 text-lg">
+                 <div class="bg-slate-900 p-6 sm:p-8 md:p-10 rounded-2xl">
+                    <h2 class="text-2xl md:text-3xl font-bold mb-4">Data Profiling: Your First Line of Defense</h2>
+                    <p class="mb-8 text-base md:text-lg">Before you transform, you must understand your data's health. Power Query provides powerful, built-in profiling tools to quickly assess data quality, distribution, and patterns right inside the editor.</p>
+                     <ul class="list-disc list-inside space-y-4 text-sm md:text-base">
                         <li><strong>Column Quality:</strong> Instantly see percentages of <em>Valid</em>, <em>Error</em>, and <em>Empty</em> values in a column. This immediately tells you where the problems are hiding.</li>
                         <li><strong>Column Distribution:</strong> Get a histogram-like view of how your data is distributed. This is invaluable for spotting outliers and understanding the shape of your data.</li>
                         <li><strong>Column Profile:</strong> Dive deep into detailed statistics for any column, including value counts, distinct counts, min/max, average, and more.</li>
@@ -329,13 +328,13 @@
 
             <!-- Advanced Section -->
             <section id="advanced" class="content-section">
-                 <div class="bg-slate-900 p-6 sm:p-8 md:p-10 rounded-lg">
-                    <h2 class="text-3xl md:text-4xl font-bold mb-4">Advanced Techniques & The M Language</h2>
-                    <p class="mb-8 text-lg">Go beyond the UI and dive into the Power Query M formula language to unlock custom logic, create reusable functions, and optimize performance for massive datasets.</p>
+                 <div class="bg-slate-900 p-6 sm:p-8 md:p-10 rounded-2xl">
+                    <h2 class="text-2xl md:text-3xl font-bold mb-4">Advanced Techniques & The M Language</h2>
+                    <p class="mb-8 text-base md:text-lg">Go beyond the UI and dive into the Power Query M formula language to unlock custom logic, create reusable functions, and optimize performance.</p>
                     <div class="space-y-6 md:space-y-8">
-                        <div class="interactive-card p-6 md:p-8 rounded-lg">
+                        <div class="interactive-card p-6 md:p-8 rounded-2xl">
                             <h3 class="font-semibold text-xl md:text-2xl mb-3">Creating Custom Functions</h3>
-                            <p class="mb-5">Encapsulate repeatable logic into your own portable functions. This example creates a function to safely standardize text by trimming whitespace and converting it to proper case, correctly handling null values.</p>
+                            <p class="mb-5 text-sm md:text-base leading-relaxed">Encapsulate repeatable logic into your own portable functions. This example creates a function to safely standardize text by trimming whitespace and converting it to proper case, correctly handling null values.</p>
                             <div class="code-block">
 <pre><code>(<span class="keyword">inputText</span> as nullable text) as nullable text =>
 let
@@ -347,9 +346,9 @@ in
     Result</code></pre>
                             </div>
                         </div>
-                         <div class="interactive-card p-6 md:p-8 rounded-lg">
+                         <div class="interactive-card p-6 md:p-8 rounded-2xl">
                             <h3 class="font-semibold text-xl md:text-2xl mb-3">Bulletproof Error Handling with Try...Otherwise</h3>
-                            <p class="mb-5">Gracefully manage potential errors in your transformations. For instance, if a text-to-number conversion fails, you can return a default value like 0 or null instead of allowing the entire query to fail catastrophically.</p>
+                            <p class="mb-5 text-sm md:text-base leading-relaxed">Gracefully manage potential errors in your transformations. For instance, if a text-to-number conversion fails, you can return a default value like 0 or null instead of allowing the entire query to fail catastrophically.</p>
                             <div class="code-block">
 <pre><code>let
     Source = <span class="function">Table.FromRows</span>({{"123"}, {"abc"}, {"456"}}),
@@ -360,10 +359,10 @@ in
     ChangedType</code></pre>
                             </div>
                         </div>
-                        <div class="interactive-card p-6 md:p-8 rounded-lg">
+                        <div class="interactive-card p-6 md:p-8 rounded-2xl">
                             <h3 class="font-semibold text-xl md:text-2xl mb-3">Performance Tuning & Query Folding</h3>
-                            <p class="mb-3 leading-relaxed"><strong>Query Folding</strong> is the secret to blazing-fast performance. It's the process of translating your transformation steps (like filtering) into the native language of your data source (e.g., SQL). This forces the source database to do the heavy lifting <em>before</em> sending a smaller, pre-processed dataset to you.</p>
-                            <p class="leading-relaxed"><strong>Pro Tip:</strong> Steps like filtering, sorting, and removing columns at the beginning of your query are very likely to fold. Complex transformations or custom M code often stop folding. Right-click a step and see if "View Native Query" is enabled to check!</p>
+                            <p class="mb-3 text-sm md:text-base leading-relaxed"><strong>Query Folding</strong> is the secret to blazing-fast performance. It's the process of translating your transformation steps (like filtering) into the native language of your data source (e.g., SQL). This forces the source database to do the heavy lifting <em>before</em> sending a smaller, pre-processed dataset to you.</p>
+                            <p class="text-sm md:text-base leading-relaxed"><strong>Pro Tip:</strong> Steps like filtering, sorting, and removing columns at the beginning of your query are very likely to fold. Complex transformations or custom M code often stop folding. Right-click a step and see if "View Native Query" is enabled to check!</p>
                         </div>
                     </div>
                 </div>
@@ -371,29 +370,29 @@ in
 
             <!-- Use Cases Section -->
             <section id="use-cases" class="content-section">
-                <div class="bg-slate-900 p-6 sm:p-8 md:p-10 rounded-lg">
-                    <h2 class="text-3xl md:text-4xl font-bold mb-4">Practical Use Cases</h2>
-                    <p class="mb-8 text-lg">Let's apply these concepts to real-world scenarios to see the power of an automated workflow.</p>
+                <div class="bg-slate-900 p-6 sm:p-8 md:p-10 rounded-2xl">
+                    <h2 class="text-2xl md:text-3xl font-bold mb-4">Practical Use Cases</h2>
+                    <p class="mb-8 text-base md:text-lg">Let's apply these concepts to real-world scenarios to see the power of an automated workflow.</p>
                     <div class="grid md:grid-cols-2 gap-8 md:gap-10">
-                        <div class="interactive-card p-6 md:p-8 rounded-lg">
+                        <div class="interactive-card p-6 md:p-8 rounded-2xl">
                              <h3 class="font-semibold text-xl md:text-2xl mb-3">1. Sales Reporting Automation</h3>
-                            <p class="mb-5">This workflow combines multiple monthly sales CSVs from a folder, merges them with an Excel-based product lookup table, and groups the data to calculate total sales per category.</p>
+                            <p class="mb-5 text-sm md:text-base leading-relaxed">This workflow combines multiple monthly sales CSVs from a folder, merges them with an Excel-based product lookup table, and groups the data to calculate total sales per category.</p>
                             <div class="chart-container h-64 sm:h-80">
                                 <canvas id="sales-report-chart"></canvas>
                             </div>
                         </div>
-                        <div class="interactive-card p-6 md:p-8 rounded-lg">
+                        <div class="interactive-card p-6 md:p-8 rounded-2xl">
                              <h3 class="font-semibold text-xl md:text-2xl mb-3">2. Unpivoting Survey Data</h3>
-                            <p class="mb-5">Survey data often comes in a "wide" format (one column per question). Unpivoting transforms it into a "tall" format, making it easy to analyze responses across all questions.</p>
+                            <p class="mb-5 text-sm md:text-base leading-relaxed">Survey data often comes in a "wide" format (one column per question). Unpivoting transforms it into a "tall" format, making it easy to analyze responses across all questions.</p>
                              <div class="chart-container h-64 sm:h-80">
                                 <canvas id="survey-chart"></canvas>
                             </div>
                         </div>
                     </div>
-                    <div class="interactive-card p-6 md:p-8 rounded-lg mt-8 md:mt-10">
+                    <div class="interactive-card p-6 md:p-8 rounded-2xl mt-8 md:mt-10">
                         <h3 class="font-semibold text-xl md:text-2xl mb-4">3. Data Automation Workflow</h3>
-                        <p class="mb-5">Here is a visual representation of a typical Power Query automation process using a Mermaid flowchart.</p>
-                        <pre class="mermaid bg-slate-800 p-6 rounded-lg text-center">
+                        <p class="mb-5 text-sm md:text-base leading-relaxed">Here is a visual representation of a typical Power Query automation process using a Mermaid flowchart.</p>
+                        <pre class="mermaid bg-slate-800 p-6 rounded-xl text-center">
 graph TD
     A[Source: Folder of CSVs] --> B{Power Query Engine};
     C[Source: Excel Lookup Table] --> B;
@@ -414,12 +413,12 @@ graph TD
 
             <!-- Best Practices Section -->
             <section id="best-practices" class="content-section">
-                <div class="bg-slate-900 p-6 sm:p-8 md:p-10 rounded-lg mb-6 md:mb-8">
-                    <h2 class="text-3xl md:text-4xl font-bold mb-4">Best Practices & Optimization</h2>
+                <div class="bg-slate-900 p-6 sm:p-8 md:p-10 rounded-2xl mb-6 md:mb-8">
+                    <h2 class="text-2xl md:text-3xl font-bold mb-4">Best Practices & Optimization</h2>
                      <div class="grid md:grid-cols-2 gap-8 md:gap-10">
                         <div>
                             <h3 class="text-xl md:text-2xl font-semibold mb-4">Query Organization</h3>
-                            <ul class="list-disc list-inside space-y-3">
+                            <ul class="list-disc list-inside space-y-3 text-sm md:text-base">
                                 <li>Use clear, consistent naming conventions (e.g., `fctSales`, `dimProduct`).</li>
                                 <li>Rename steps to be descriptive (e.g., `RemovedInactiveProducts` instead of `Filtered Rows1`).</li>
                                 <li>Group related queries into folders (e.g., Staging, Transformation, Final).</li>
@@ -429,7 +428,7 @@ graph TD
                         </div>
                         <div>
                             <h3 class="text-xl md:text-2xl font-semibold mb-4">Performance Tips</h3>
-                            <ul class="list-disc list-inside space-y-3">
+                            <ul class="list-disc list-inside space-y-3 text-sm md:text-base">
                                 <li>Filter data and remove unnecessary columns as early as possible to maximize query folding.</li>
                                 <li>Be mindful of steps that break folding (e.g., custom M code, using an index column). Right-click a step to see if "View Native Query" is enabled.</li>
                                 <li>Use `Table.Buffer()` strategically. It loads a table into memory, which can speed up a query if you reference that table multiple times, but it breaks folding.</li>
@@ -439,9 +438,9 @@ graph TD
                         </div>
                     </div>
                 </div>
-                <div class="bg-slate-900 p-6 sm:p-8 md:p-10 rounded-lg">
-                    <h2 class="text-3xl md:text-4xl font-bold mb-4">Official Resources</h2>
-                    <ul class="list-disc list-inside space-y-3 text-lg">
+                <div class="bg-slate-900 p-6 sm:p-8 md:p-10 rounded-2xl">
+                    <h2 class="text-2xl md:text-3xl font-bold mb-4">Official Resources</h2>
+                    <ul class="list-disc list-inside space-y-3 text-sm md:text-base">
                         <li><a href="https://docs.microsoft.com/en-us/power-query/" target="_blank" class="text-indigo-400 hover:underline">Microsoft Power Query Docs</a></li>
                         <li><a href="https://docs.microsoft.com/en-us/powerquery-m/power-query-m-function-reference" target="_blank" class="text-indigo-400 hover:underline">Power Query M Language Reference</a></li>
                         <li><a href="https://community.powerbi.com/" target="_blank" class="text-indigo-400 hover:underline">Power BI Community Forum</a></li>
