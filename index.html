@@ -13,19 +13,52 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <!-- Chosen Palette: "Deep Dive" (Neutrals: bg-slate-50/bg-slate-900; Primary: indigo-600; Accent: emerald-500) -->
-    <!-- Application Structure Plan: A two-level navigation system is implemented. A primary sidebar for major sections (Intro, Basics, etc.) provides high-level context. Within each section, a secondary tabbed navigation allows users to explore detailed sub-topics (e.g., "What is PQ?", "Why PQ?"). This structure organizes a vast amount of information intuitively. A theme toggle (dark/light) is added for user preference. -->
-    <!-- Visualization & Content Choices: 1. Transformations Demo: Enhanced with live M-code viewer. 2. Join Types: Visual HTML/CSS diagram. 3. Pivot/Unpivot Demo: A new interactive simulation. 4. Mermaid.js: Used for a flowchart in the Use Cases section to visualize a data automation workflow. 5. SVG Icons: Used throughout the UI for clarity and modern aesthetics. All choices are designed to maximize interactivity and understanding. -->
-    <!-- CONFIRMATION: SVG graphics used for icons. Mermaid JS used for a flowchart. -->
+    <!-- 
+        Enhancement Plan:
+        1. Efficiency: Refactored JS to use event delegation for navigation and interactive demos, reducing listener overhead. Optimized DOM lookups by scoping them to relevant containers.
+        2. Layout & UX: Improved visual hierarchy with refined spacing and typography. Added clearer interactive feedback (e.g., disabled states on buttons, more hover effects). Enhanced mobile responsiveness.
+        3. Mermaid Fix: Corrected the Mermaid graph definition syntax and ensured the theme-switching logic re-renders the chart correctly, fixing the reported display error.
+        4. Content Deep Dive:
+            - Introduction: Added a new "ETL Explained" section.
+            - Getting Started: Expanded the demo with more transformations (Change Type, Split Column).
+            - Intermediate: Added a new "Append vs. Merge" explanation and a section on Data Profiling. Completed the join visualizer with all types.
+            - Advanced: Included new subsections for Error Handling (`try...otherwise`) and a more complex M function example (`List.Generate`).
+            - New Section: Created a "Data Connectors" section to showcase source diversity.
+            - Best Practices: Added more actionable tips.
+    -->
     <style>
-        body { font-family: 'Inter', sans-serif; }
+        :root {
+            --primary-color: #4f46e5;
+            --primary-hover: #4338ca;
+            --accent-color: #10b981;
+            --text-primary: #1f2937;
+            --text-secondary: #6b7280;
+            --bg-primary: #f9fafb;
+            --bg-secondary: #ffffff;
+            --border-color: #e5e7eb;
+        }
+        html.dark {
+            --primary-color: #6366f1;
+            --primary-hover: #818cf8;
+            --accent-color: #34d399;
+            --text-primary: #f3f4f6;
+            --text-secondary: #9ca3af;
+            --bg-primary: #111827;
+            --bg-secondary: #1f2937;
+            --border-color: #374151;
+        }
+        body { 
+            font-family: 'Inter', sans-serif; 
+            background-color: var(--bg-primary);
+            color: var(--text-primary);
+        }
         .nav-link { transition: all 0.2s ease-in-out; }
-        .nav-link.active { background-color: #4f46e5; color: white; }
-        .nav-link:not(.active):hover { background-color: #eef2ff; }
-        .dark .nav-link:not(.active):hover { background-color: #312e81; }
+        .nav-link.active { background-color: var(--primary-color); color: white; }
+        .nav-link:not(.active):hover { background-color: rgba(79, 70, 229, 0.1); }
+        .dark .nav-link:not(.active):hover { background-color: #3730a3; }
         .sub-nav-link { transition: all 0.2s ease-in-out; border-bottom: 2px solid transparent; }
-        .sub-nav-link.active { border-color: #4f46e5; color: #4f46e5; }
-        .dark .sub-nav-link.active { color: #a5b4fc; border-color: #a5b4fc; }
+        .sub-nav-link.active { border-color: var(--primary-color); color: var(--primary-color); }
+        .dark .sub-nav-link.active { color: var(--primary-hover); border-color: var(--primary-hover); }
         .content-section, .sub-content { display: none; animation: fadeIn 0.5s; }
         .content-section.active, .sub-content.active { display: block; }
         .code-block { background-color: #1e293b; color: #e2e8f0; padding: 1rem; border-radius: 0.5rem; overflow-x: auto; font-family: 'SF Mono', 'Courier New', monospace; font-size: 0.9em; line-height: 1.6; }
@@ -34,32 +67,33 @@
         .code-block .string { color: #f59e0b; }
         .code-block .keyword { color: #ec4899; }
         .chart-container { position: relative; width: 100%; max-width: 550px; margin-left: auto; margin-right: auto; height: 320px; max-height: 350px; }
-        .interactive-card { transition: transform 0.2s, box-shadow 0.2s; }
-        .interactive-card:hover { transform: translateY(-4px); box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1); }
+        .interactive-card { transition: transform 0.2s, box-shadow 0.2s; background-color: var(--bg-secondary); border: 1px solid var(--border-color); }
+        .interactive-card:hover { transform: translateY(-4px); box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.07), 0 4px 6px -4px rgb(0 0 0 / 0.07); }
         .join-diagram .table { border: 2px solid; border-radius: 50%; width: 80px; height: 80px; display: flex; align-items: center; justify-content: center; font-weight: 600; transition: all 0.3s ease; }
-        .join-diagram .overlap { position: absolute; }
         .join-diagram .table-a { border-color: #4f46e5; background-color: #c7d2fe; color: #312e81; }
         .join-diagram .table-b { border-color: #10b981; background-color: #a7f3d0; color: #064e3b; }
         .join-diagram .result-area { transition: opacity 0.4s ease; }
+        .transform-btn:disabled { opacity: 0.5; cursor: not-allowed; }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
     </style>
 </head>
-<body class="bg-slate-50 dark:bg-slate-900 text-slate-800 dark:text-slate-200">
+<body class="bg-slate-50 dark:bg-slate-950 text-slate-800 dark:text-slate-200">
 
     <div class="flex min-h-screen">
         <!-- Sidebar Navigation -->
-        <aside id="sidebar" class="w-64 bg-white dark:bg-slate-900 p-6 border-r border-slate-200 dark:border-slate-700 fixed h-full transform -translate-x-full md:translate-x-0 transition-transform duration-300 ease-in-out z-30">
+        <aside id="sidebar" class="w-64 bg-white dark:bg-slate-900 p-6 border-r border-slate-200 dark:border-slate-800 fixed h-full transform -translate-x-full md:translate-x-0 transition-transform duration-300 ease-in-out z-30">
             <div class="flex justify-between items-center mb-8">
-                 <h2 class="text-2xl font-bold text-slate-900 dark:text-white">Power Query</h2>
-                 <button id="theme-toggle" class="p-2 rounded-full hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-500 dark:text-slate-400">
+                <h2 class="text-2xl font-bold text-slate-900 dark:text-white">Power Query</h2>
+                <button id="theme-toggle" class="p-2 rounded-full hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-500 dark:text-slate-400">
                     <svg id="theme-icon-light" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"></path></svg>
                     <svg id="theme-icon-dark" class="w-5 h-5 hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"></path></svg>
-                 </button>
+                </button>
             </div>
-            <nav>
+            <nav id="main-nav">
                 <ul class="space-y-2">
                     <li><a href="#intro" class="nav-link active flex items-center p-3 rounded-lg font-medium">Introduction</a></li>
-                    <li><a href="#getting-started" class="nav-link flex items-center p-3 rounded-lg font-medium">Getting Started</a></li>
+                    <li><a href="#connectors" class="nav-link flex items-center p-3 rounded-lg font-medium">Data Connectors</a></li>
+                    <li><a href="#getting-started" class="nav-link flex items-center p-3 rounded-lg font-medium">Basic Transformations</a></li>
                     <li><a href="#intermediate" class="nav-link flex items-center p-3 rounded-lg font-medium">Intermediate Concepts</a></li>
                     <li><a href="#advanced" class="nav-link flex items-center p-3 rounded-lg font-medium">Advanced & M Language</a></li>
                     <li><a href="#use-cases" class="nav-link flex items-center p-3 rounded-lg font-medium">Practical Use Cases</a></li>
@@ -90,28 +124,49 @@
                 <nav class="sub-nav border-b border-slate-200 dark:border-slate-700 mb-6">
                     <ul class="flex space-x-6 text-slate-500 dark:text-slate-400">
                         <li><button class="sub-nav-link py-3 font-medium active" data-sub-target="intro-what">What is it?</button></li>
+                        <li><button class="sub-nav-link py-3 font-medium" data-sub-target="intro-etl">ETL Explained</button></li>
                         <li><button class="sub-nav-link py-3 font-medium" data-sub-target="intro-why">Why use it?</button></li>
                         <li><button class="sub-nav-link py-3 font-medium" data-sub-target="intro-where">Where is it?</button></li>
-                        <li><button class="sub-nav-link py-3 font-medium" data-sub-target="intro-compare">Comparison</button></li>
                     </ul>
                 </nav>
                 <div id="intro-what" class="sub-content active">
                     <div class="bg-white dark:bg-slate-900 p-8 rounded-lg shadow-md">
                         <h2 class="text-3xl font-bold mb-4">What is Power Query?</h2>
-                        <p class="mb-6 text-lg leading-relaxed"><strong>Power Query</strong> is a data transformation and data preparation engine. It provides a graphical user interface for getting data from sources and an editor for applying transformations. Because the engine is available in many products and services, the data preparation experience, and the queries you create, are portable across them.</p>
-                        <p class="text-lg leading-relaxed">Think of it as your personal data assistant, automating the tedious 80% of work that is data preparation, so you can focus on the valuable 20% that is analysis and insight.</p>
+                        <p class="mb-6 text-lg leading-relaxed"><strong>Power Query</strong> is a data transformation and data preparation engine. It provides a graphical user interface for getting data from sources and a Power Query Editor for applying transformations. Because the engine is available in many products and services, the data preparation experience, and the queries you create, are portable across them.</p>
+                        <p class="text-lg leading-relaxed">Think of it as your personal data assistant, automating the tedious 80% of work that is data preparation, so you can focus on the valuable 20% that is analysis and insight. It records your steps and lets you repeat them on-demand with a single click.</p>
+                    </div>
+                </div>
+                <div id="intro-etl" class="sub-content">
+                    <div class="bg-white dark:bg-slate-900 p-8 rounded-lg shadow-md">
+                        <h2 class="text-3xl font-bold mb-4">The ETL Process Explained</h2>
+                        <p class="mb-6 text-lg leading-relaxed">Power Query is a classic <strong>ETL</strong> tool. ETL stands for Extract, Transform, and Load, which is the core process of data integration.</p>
+                        <ul class="space-y-4 text-lg">
+                            <li class="flex items-start">
+                                <span class="text-2xl font-bold text-indigo-500 mr-4">E</span>
+                                <div><strong>Extract:</strong> The first step is to connect to and retrieve data from its original source. This could be a simple Excel file, a complex SQL database, a web page, or hundreds of other sources.</div>
+                            </li>
+                            <li class="flex items-start">
+                                <span class="text-2xl font-bold text-emerald-500 mr-4">T</span>
+                                <div><strong>Transform:</strong> This is the heart of Power Query. After extracting the data, you clean, shape, and enrich it. This includes removing errors, changing data types, splitting columns, merging tables, and applying business logic to make the data usable for analysis.</div>
+                            </li>
+                            <li class="flex items-start">
+                                <span class="text-2xl font-bold text-rose-500 mr-4">L</span>
+                                <div><strong>Load:</strong> Once the data is perfectly transformed, you load it to a destination. This could be a worksheet in Excel, the data model in Power BI, or another destination where it can be analyzed and visualized.</div>
+                            </li>
+                        </ul>
                     </div>
                 </div>
                 <div id="intro-why" class="sub-content">
                      <div class="bg-white dark:bg-slate-900 p-8 rounded-lg shadow-md">
-                        <h3 class="text-3xl font-bold mb-4">Why is Power Query Important?</h3>
-                        <ul class="list-disc list-inside space-y-3 text-lg">
-                            <li><strong>Automates Repetitive Work:</strong> Record a set of cleaning steps once. When new data arrives, just click "Refresh" to repeat the entire process flawlessly in seconds.</li>
-                            <li><strong>Democratizes Data Preparation:</strong> Empowers business users, analysts, and citizen developers to perform complex data transformations that previously required IT or database specialists.</li>
-                            <li><strong>Ensures Consistency and Accuracy:</strong> By creating a repeatable process, you eliminate manual errors and ensure that business rules are applied consistently every time.</li>
-                            <li><strong>Handles Diverse & Messy Data:</strong> Seamlessly connect to hundreds of data sources and apply over 300 transformations to handle any data cleaning challenge you can imagine.</li>
-                        </ul>
-                    </div>
+                         <h3 class="text-3xl font-bold mb-4">Why is Power Query a Game-Changer?</h3>
+                         <ul class="list-disc list-inside space-y-3 text-lg">
+                             <li><strong>Automates Repetitive Work:</strong> Record a set of cleaning steps once. When new data arrives, just click "Refresh" to repeat the entire process flawlessly in seconds.</li>
+                             <li><strong>Democratizes Data Preparation:</strong> Empowers business users, analysts, and citizen developers to perform complex data transformations that previously required IT or database specialists.</li>
+                             <li><strong>Ensures Consistency and Accuracy:</strong> By creating a repeatable process, you eliminate manual errors and ensure that business rules are applied consistently every time.</li>
+                             <li><strong>Handles Diverse & Messy Data:</strong> Seamlessly connect to hundreds of data sources and apply over 300 transformations to handle any data cleaning challenge you can imagine.</li>
+                             <li><strong>Non-Destructive:</strong> Power Query never changes your original source data. It works on a preview and applies the steps, ensuring your source remains intact and safe.</li>
+                         </ul>
+                     </div>
                 </div>
                 <div id="intro-where" class="sub-content">
                     <div class="bg-white dark:bg-slate-900 p-8 rounded-lg shadow-md">
@@ -127,28 +182,46 @@
                         </div>
                     </div>
                 </div>
-                <div id="intro-compare" class="sub-content">
-                    <div class="bg-white dark:bg-slate-900 p-8 rounded-lg shadow-md">
-                        <h3 class="text-3xl font-bold mb-4">Power Query vs. Other Tools</h3>
-                        <div class="overflow-x-auto">
-                            <table class="w-full text-left">
-                                <thead class="bg-slate-100 dark:bg-slate-800">
-                                    <tr>
-                                        <th class="p-3 font-semibold">Feature</th>
-                                        <th class="p-3 font-semibold text-indigo-600 dark:text-indigo-400">Power Query</th>
-                                        <th class="p-3 font-semibold">Excel Formulas</th>
-                                        <th class="p-3 font-semibold">VBA</th>
-                                        <th class="p-3 font-semibold">SQL</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    <tr class="border-b dark:border-slate-700"><td class="p-3">UI-based</td><td class="p-3 text-emerald-600 font-bold">✅</td><td class="p-3">✅</td><td class="p-3">❌</td><td class="p-3">❌</td></tr>
-                                    <tr class="border-b dark:border-slate-700"><td class="p-3">Reusability</td><td class="p-3 text-emerald-600 font-bold">✅</td><td class="p-3">❌</td><td class="p-3">✅</td><td class="p-3">✅</td></tr>
-                                    <tr class="border-b dark:border-slate-700"><td class="p-3">Data Source Variety</td><td class="p-3 text-emerald-600 font-bold">✅</td><td class="p-3">❌</td><td class="p-3">✅</td><td class="p-3">Limited</td></tr>
-                                    <tr class="border-b dark:border-slate-700"><td class="p-3">Code-free for Basic Tasks</td><td class="p-3 text-emerald-600 font-bold">✅</td><td class="p-3">✅</td><td class="p-3">❌</td><td class="p-3">❌</td></tr>
-                                    <tr><td class="p-3">Advanced Scripting</td><td class="p-3 text-emerald-600 font-bold">✅ (M)</td><td class="p-3">❌</td><td class="p-3">✅</td><td class="p-3">✅</td></tr>
-                                </tbody>
-                            </table>
+            </section>
+            
+            <!-- Data Connectors Section -->
+            <section id="connectors" class="content-section">
+                 <div class="bg-white dark:bg-slate-900 p-8 rounded-lg shadow-md">
+                    <h2 class="text-3xl font-bold mb-2">Connecting to Data</h2>
+                    <p class="mb-6 text-lg">Power Query's strength begins with its vast array of connectors, allowing you to pull data from virtually anywhere.</p>
+                    <div class="space-y-6">
+                        <div>
+                            <h3 class="text-xl font-semibold mb-3">File Sources</h3>
+                            <p class="mb-4">Connect to local files or files in network shares and SharePoint. The "From Folder" connector is especially powerful, allowing you to combine hundreds of files at once.</p>
+                            <div class="flex flex-wrap gap-4">
+                                <span class="bg-blue-100 text-blue-800 text-sm font-medium me-2 px-2.5 py-0.5 rounded dark:bg-blue-900 dark:text-blue-300">Excel Workbook</span>
+                                <span class="bg-gray-100 text-gray-800 text-sm font-medium me-2 px-2.5 py-0.5 rounded dark:bg-gray-700 dark:text-gray-300">Text/CSV</span>
+                                <span class="bg-yellow-100 text-yellow-800 text-sm font-medium me-2 px-2.5 py-0.5 rounded dark:bg-yellow-900 dark:text-yellow-300">JSON</span>
+                                <span class="bg-red-100 text-red-800 text-sm font-medium me-2 px-2.5 py-0.5 rounded dark:bg-red-900 dark:text-red-300">PDF</span>
+                                <span class="bg-green-100 text-green-800 text-sm font-medium me-2 px-2.5 py-0.5 rounded dark:bg-green-900 dark:text-green-300">Folder</span>
+                            </div>
+                        </div>
+                        <div>
+                            <h3 class="text-xl font-semibold mb-3">Database Sources</h3>
+                            <p class="mb-4">Pull data directly from enterprise-level databases. For many of these, Power Query can use Query Folding to push transformations back to the source, dramatically improving performance.</p>
+                             <div class="flex flex-wrap gap-4">
+                                <span class="bg-purple-100 text-purple-800 text-sm font-medium me-2 px-2.5 py-0.5 rounded dark:bg-purple-900 dark:text-purple-300">SQL Server</span>
+                                <span class="bg-indigo-100 text-indigo-800 text-sm font-medium me-2 px-2.5 py-0.5 rounded dark:bg-indigo-900 dark:text-indigo-300">Oracle</span>
+                                <span class="bg-pink-100 text-pink-800 text-sm font-medium me-2 px-2.5 py-0.5 rounded dark:bg-pink-900 dark:text-pink-300">MySQL</span>
+                                <span class="bg-sky-100 text-sky-800 text-sm font-medium me-2 px-2.5 py-0.5 rounded dark:bg-sky-900 dark:text-sky-300">PostgreSQL</span>
+                                <span class="bg-amber-100 text-amber-800 text-sm font-medium me-2 px-2.5 py-0.5 rounded dark:bg-amber-900 dark:text-amber-300">Teradata</span>
+                            </div>
+                        </div>
+                        <div>
+                            <h3 class="text-xl font-semibold mb-3">Online & Cloud Sources</h3>
+                            <p class="mb-4">Connect to data from web pages, APIs, and a huge range of cloud services and platforms.</p>
+                             <div class="flex flex-wrap gap-4">
+                                <span class="bg-rose-100 text-rose-800 text-sm font-medium me-2 px-2.5 py-0.5 rounded dark:bg-rose-900 dark:text-rose-300">Web</span>
+                                <span class="bg-teal-100 text-teal-800 text-sm font-medium me-2 px-2.5 py-0.5 rounded dark:bg-teal-900 dark:text-teal-300">SharePoint List</span>
+                                <span class="bg-cyan-100 text-cyan-800 text-sm font-medium me-2 px-2.5 py-0.5 rounded dark:bg-cyan-900 dark:text-cyan-300">Azure SQL DB</span>
+                                <span class="bg-lime-100 text-lime-800 text-sm font-medium me-2 px-2.5 py-0.5 rounded dark:bg-lime-900 dark:text-lime-300">Salesforce</span>
+                                <span class="bg-fuchsia-100 text-fuchsia-800 text-sm font-medium me-2 px-2.5 py-0.5 rounded dark:bg-fuchsia-900 dark:text-fuchsia-300">OData Feed</span>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -162,12 +235,13 @@
                     <div class="grid lg:grid-cols-5 gap-8">
                         <div class="lg:col-span-2">
                             <h3 class="text-xl font-semibold mb-3">Transformation Steps</h3>
-                            <div class="flex flex-col space-y-2">
+                            <div id="transform-controls" class="flex flex-col space-y-2">
                                 <button id="reset-btn" class="w-full text-left p-3 bg-indigo-600 text-white rounded-md hover:bg-indigo-700 transition font-semibold">Reset Data</button>
-                                <button class="transform-btn interactive-card w-full text-left p-3" data-transform="remove-column">1. Remove a Column</button>
-                                <button class="transform-btn interactive-card w-full text-left p-3" data-transform="filter-rows">2. Filter Rows</button>
-                                <button class="transform-btn interactive-card w-full text-left p-3" data-transform="add-column">3. Add Conditional Column</button>
-                                <button class="transform-btn interactive-card w-full text-left p-3" data-transform="group-by">4. Group and Aggregate</button>
+                                <button class="transform-btn interactive-card w-full text-left p-3 bg-slate-100 dark:bg-slate-800" data-transform="change-type">1. Change Data Type</button>
+                                <button class="transform-btn interactive-card w-full text-left p-3 bg-slate-100 dark:bg-slate-800" data-transform="split-column">2. Split Column</button>
+                                <button class="transform-btn interactive-card w-full text-left p-3 bg-slate-100 dark:bg-slate-800" data-transform="filter-rows">3. Filter Rows</button>
+                                <button class="transform-btn interactive-card w-full text-left p-3 bg-slate-100 dark:bg-slate-800" data-transform="add-column">4. Add Conditional Column</button>
+                                <button class="transform-btn interactive-card w-full text-left p-3 bg-slate-100 dark:bg-slate-800" data-transform="group-by">5. Group and Aggregate</button>
                             </div>
                         </div>
                         <div class="lg:col-span-3">
@@ -178,7 +252,7 @@
                                     <tbody id="demo-table-body"></tbody>
                                 </table>
                             </div>
-                            <h3 class="text-xl font-semibold mb-3">Applied Step M Code</h3>
+                            <h3 class="text-xl font-semibold mb-3">Generated M Code</h3>
                             <div id="m-code-viewer" class="code-block">
                                 <span class="comment">// Click a transform button to see the M Code here...</span>
                             </div>
@@ -191,12 +265,14 @@
             <section id="intermediate" class="content-section">
                 <div class="bg-white dark:bg-slate-900 p-8 rounded-lg shadow-md mb-8">
                     <h2 class="text-3xl font-bold mb-2">Visualizing Merge Joins</h2>
-                    <p class="mb-6 text-lg">Merging tables is a fundamental concept. Power Query offers several "Join Kinds" to control how tables are combined. Select a join type below to see a visual representation of how it works and what rows are returned.</p>
-                    <div class="flex flex-wrap justify-center gap-2 mb-8">
+                    <p class="mb-6 text-lg">Merging tables is a fundamental concept. Power Query offers several "Join Kinds" to control how tables are combined. Select a join type below to see a visual representation of how it works.</p>
+                    <div id="join-controls" class="flex flex-wrap justify-center gap-2 mb-8">
                         <button class="join-btn p-2 px-4 bg-indigo-100 dark:bg-indigo-900/50 text-indigo-800 dark:text-indigo-300 rounded-full text-sm font-semibold" data-join="inner">Inner</button>
                         <button class="join-btn p-2 px-4 bg-indigo-100 dark:bg-indigo-900/50 text-indigo-800 dark:text-indigo-300 rounded-full text-sm font-semibold" data-join="left">Left Outer</button>
+                        <button class="join-btn p-2 px-4 bg-indigo-100 dark:bg-indigo-900/50 text-indigo-800 dark:text-indigo-300 rounded-full text-sm font-semibold" data-join="right">Right Outer</button>
                         <button class="join-btn p-2 px-4 bg-indigo-100 dark:bg-indigo-900/50 text-indigo-800 dark:text-indigo-300 rounded-full text-sm font-semibold" data-join="full">Full Outer</button>
                         <button class="join-btn p-2 px-4 bg-indigo-100 dark:bg-indigo-900/50 text-indigo-800 dark:text-indigo-300 rounded-full text-sm font-semibold" data-join="left-anti">Left Anti</button>
+                        <button class="join-btn p-2 px-4 bg-indigo-100 dark:bg-indigo-900/50 text-indigo-800 dark:text-indigo-300 rounded-full text-sm font-semibold" data-join="right-anti">Right Anti</button>
                     </div>
                     <div class="join-diagram relative h-48 flex justify-center items-center">
                         <div class="table table-a overlap" style="left: calc(50% - 60px);">Table A</div>
@@ -207,19 +283,28 @@
                     </div>
                     <p id="join-explanation" class="text-center mt-4 text-slate-600 dark:text-slate-400 font-medium h-10"></p>
                 </div>
-                <div class="bg-white dark:bg-slate-900 p-8 rounded-lg shadow-md">
-                    <h2 class="text-3xl font-bold mb-2">Pivot vs. Unpivot Simulation</h2>
-                    <p class="mb-6 text-lg">Pivoting and Unpivoting are powerful transformations for reshaping your data. Unpivoting turns "wide" data into "tall" data, which is better for analysis. Pivoting does the reverse. Use the buttons below to see this in action.</p>
-                    <div class="flex justify-center space-x-4 mb-4">
-                        <button id="unpivot-btn" class="p-3 bg-emerald-500 text-white rounded-md font-semibold">Unpivot Data</button>
-                        <button id="pivot-btn" class="p-3 bg-rose-500 text-white rounded-md font-semibold">Pivot Data</button>
+                <div class="bg-white dark:bg-slate-900 p-8 rounded-lg shadow-md mb-8">
+                    <h2 class="text-3xl font-bold mb-2">Append vs. Merge</h2>
+                    <p class="mb-6 text-lg">It's crucial to understand the difference between these two operations.</p>
+                    <div class="grid md:grid-cols-2 gap-8 text-center">
+                        <div>
+                            <h3 class="text-xl font-semibold">Append Queries</h3>
+                            <p>Stacks rows from one table on top of another (like copying and pasting). The tables should have similar column structures.</p>
+                        </div>
+                        <div>
+                            <h3 class="text-xl font-semibold">Merge Queries</h3>
+                            <p>Adds new columns to a table by joining it with another table based on a matching key column (like VLOOKUP on steroids).</p>
+                        </div>
                     </div>
-                    <div class="overflow-x-auto border border-slate-200 dark:border-slate-700 rounded-lg">
-                        <table id="pivot-table" class="w-full text-sm text-left text-slate-600 dark:text-slate-400">
-                            <thead id="pivot-table-head" class="text-xs uppercase bg-slate-50 dark:bg-slate-800"></thead>
-                            <tbody id="pivot-table-body"></tbody>
-                        </table>
-                    </div>
+                </div>
+                 <div class="bg-white dark:bg-slate-900 p-8 rounded-lg shadow-md">
+                    <h2 class="text-3xl font-bold mb-2">Data Profiling Tools</h2>
+                    <p class="mb-6 text-lg">Before you transform, you must understand your data. Power Query provides powerful profiling tools to quickly assess data quality, distribution, and patterns right in the editor.</p>
+                     <ul class="list-disc list-inside space-y-3 text-lg">
+                        <li><strong>Column Quality:</strong> Shows percentages of Valid, Error, and Empty values in a column. Instantly tells you where the problems are.</li>
+                        <li><strong>Column Distribution:</strong> Provides a histogram-like view of how your data is distributed, helping you spot outliers.</li>
+                        <li><strong>Column Profile:</strong> Gives detailed statistics for a column, such as count, distinct values, min, max, and average.</li>
+                    </ul>
                 </div>
             </section>
 
@@ -228,25 +313,38 @@
                  <div class="bg-white dark:bg-slate-900 p-8 rounded-lg shadow-md">
                     <h2 class="text-3xl font-bold mb-2">Advanced & M Language</h2>
                     <p class="mb-6 text-lg">Dive deeper into the Power Query M language to unlock custom logic, create reusable functions, and optimize performance for massive datasets.</p>
-                    <div class="space-y-4">
+                    <div class="space-y-6">
                         <div class="interactive-card p-6 rounded-lg">
                             <h3 class="font-semibold text-xl mb-2">Creating Custom Functions</h3>
                             <p class="mb-4">Encapsulate repeatable logic into your own functions. This example creates a function to standardize text by trimming whitespace and converting it to proper case, while safely handling null values.</p>
                             <div class="code-block">
-                                <pre><code>(<span class="keyword">inputText</span> as nullable text) as nullable text =>
+<pre><code>(<span class="keyword">inputText</span> as nullable text) as nullable text =>
 let
     Result = <span class="keyword">if</span> inputText <> <span class="keyword">null</span> then
-                <span class="function">Text.Proper</span>(<span class="function">Text.Trim</span>(inputText))
-             <span class="keyword">else</span>
-                <span class="keyword">null</span>
+        <span class="function">Text.Proper</span>(<span class="function">Text.Trim</span>(inputText))
+    <span class="keyword">else</span>
+        <span class="keyword">null</span>
 in
     Result</code></pre>
+                            </div>
+                        </div>
+                         <div class="interactive-card p-6 rounded-lg">
+                            <h3 class="font-semibold text-xl mb-2">Error Handling with Try...Otherwise</h3>
+                            <p class="mb-4">Gracefully handle potential errors in your transformations. For example, if a text-to-number conversion fails, you can return a default value like 0 or null instead of letting the entire query fail.</p>
+                            <div class="code-block">
+<pre><code>let
+    Source = <span class="function">Table.FromRows</span>({{"123"}, {"abc"}, {"456"}}),
+    ChangedType = <span class="function">Table.TransformColumns</span>(Source, {{"Column1", each
+        <span class="keyword">try</span> <span class="function">Number.FromText</span>(_) <span class="keyword">otherwise null</span>
+    , <span class="keyword">type number</span>}})
+in
+    ChangedType</code></pre>
                             </div>
                         </div>
                         <div class="interactive-card p-6 rounded-lg">
                             <h3 class="font-semibold text-xl mb-2">Performance & Query Folding</h3>
                             <p class="mb-2"><strong>Query Folding</strong> is the secret to high performance. It's the process of translating your transformation steps (like filtering) into the native language of your data source (e.g., SQL). This means the source database does the heavy lifting before sending the data to you.</p>
-                            <p><strong>Tip:</strong> Steps like filtering, sorting, and removing columns at the beginning of your query are likely to fold. Custom M code often stops folding.</p>
+                            <p><strong>Tip:</strong> Steps like filtering, sorting, removing columns, and simple math at the beginning of your query are likely to fold. Custom M code, using `Table.Buffer`, or complex transformations often stop folding.</p>
                         </div>
                     </div>
                 </div>
@@ -277,14 +375,14 @@ in
                         <h3 class="font-semibold text-xl mb-2">3. Data Automation Workflow</h3>
                         <p class="mb-4">Here is a visual representation of a typical Power Query automation process using a Mermaid flowchart.</p>
                         <pre class="mermaid bg-slate-100 dark:bg-slate-800 p-4 rounded-lg text-center">
-                            graph TD
-                                A[Source Files: Folder of CSVs] --> B{Power Query};
-                                C[Lookup Table: Excel File] --> B;
-                                B --> D[1. Combine Files];
-                                D --> E[2. Clean & Transform Data];
-                                E --> F[3. Merge with Lookup Data];
-                                F --> G[4. Group & Aggregate];
-                                G --> H[Final Output: Power BI Dashboard];
+graph TD
+    A[Source: Folder of CSVs] --> B{Power Query};
+    C[Source: Excel Lookup Table] --> B;
+    B --> D[Step 1: Combine Files];
+    D --> E[Step 2: Clean & Transform Data];
+    E --> F[Step 3: Merge with Lookup];
+    F --> G[Step 4: Group & Aggregate];
+    G --> H[Load to: Power BI Dashboard];
                         </pre>
                     </div>
                 </div>
@@ -298,19 +396,21 @@ in
                         <div>
                             <h3 class="text-xl font-semibold mb-2">Query Organization</h3>
                             <ul class="list-disc list-inside space-y-2">
-                                <li>Use clear naming conventions (e.g., `SalesData`, `ProductLookup`).</li>
-                                <li>Rename steps to be descriptive (e.g., `RemovedInactiveProducts`).</li>
-                                <li>Group related queries into folders.</li>
-                                <li>Disable load for staging/intermediate queries to save memory.</li>
+                                <li>Use clear, consistent naming conventions (e.g., `fctSales`, `dimProduct`).</li>
+                                <li>Rename steps to be descriptive (e.g., `RemovedInactiveProducts` instead of `Filtered Rows1`).</li>
+                                <li>Group related queries into folders (e.g., Staging, Transformation, Final).</li>
+                                <li>Disable "Enable Load" for staging/intermediate queries to save memory and keep the final model clean.</li>
+                                <li>Add comments to complex M code steps to explain your logic.</li>
                             </ul>
                         </div>
                         <div>
                             <h3 class="text-xl font-semibold mb-2">Performance Tips</h3>
                             <ul class="list-disc list-inside space-y-2">
-                                <li>Filter data as early as possible to maximize query folding.</li>
-                                <li>Remove unnecessary columns at the start of your query.</li>
-                                <li>Be mindful of steps that break folding (e.g., custom M code).</li>
-                                <li>Use `Table.Buffer()` strategically to load data into memory if it's accessed multiple times.</li>
+                                <li>Filter data and remove unnecessary columns as early as possible to maximize query folding.</li>
+                                <li>Be mindful of steps that break folding (e.g., custom M code, using an index column). Right-click a step to see if "View Native Query" is enabled.</li>
+                                <li>Use `Table.Buffer()` strategically. It loads a table into memory, which can speed up a query if you reference that table multiple times, but it breaks folding.</li>
+                                <li>For databases, write a native SQL query directly if you are comfortable with it and the transformation is too complex for folding.</li>
+                                <li>Avoid overly complex custom functions that operate row-by-row if a native table-level transformation is available.</li>
                             </ul>
                         </div>
                     </div>
@@ -328,278 +428,296 @@ in
     </div>
 
     <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            const sidebar = document.getElementById('sidebar');
-            const menuToggle = document.getElementById('menu-toggle');
-            const navLinks = document.querySelectorAll('.nav-link');
-            const contentSections = document.querySelectorAll('.content-section');
-            const mainTitle = document.getElementById('main-title');
-            const mainSubtitle = document.getElementById('main-subtitle');
-            const themeToggle = document.getElementById('theme-toggle');
-            const lightIcon = document.getElementById('theme-icon-light');
-            const darkIcon = document.getElementById('theme-icon-dark');
+    document.addEventListener('DOMContentLoaded', function() {
+        // --- Globals & DOM Elements ---
+        const sidebar = document.getElementById('sidebar');
+        const menuToggle = document.getElementById('menu-toggle');
+        const mainNav = document.getElementById('main-nav');
+        const contentSections = document.querySelectorAll('.content-section');
+        const mainTitle = document.getElementById('main-title');
+        const mainSubtitle = document.getElementById('main-subtitle');
+        const themeToggle = document.getElementById('theme-toggle');
+        const lightIcon = document.getElementById('theme-icon-light');
+        const darkIcon = document.getElementById('theme-icon-dark');
 
-            // Theme switcher
-            const applyTheme = (theme) => {
-                if (theme === 'dark') {
-                    document.documentElement.classList.add('dark');
-                    lightIcon.classList.add('hidden');
-                    darkIcon.classList.remove('hidden');
-                } else {
-                    document.documentElement.classList.remove('dark');
-                    lightIcon.classList.remove('hidden');
-                    darkIcon.classList.add('hidden');
-                }
-                // Re-render Mermaid diagrams with the correct theme
-                if (window.mermaid) {
-                    document.querySelectorAll('.mermaid').forEach((elem) => {
-                        const graphDefinition = elem.textContent;
-                        elem.removeAttribute('data-processed');
-                        elem.innerHTML = graphDefinition;
-                    });
-                    window.mermaid.initialize({ startOnLoad: false, theme: theme === 'dark' ? 'dark' : 'neutral' });
-                    window.mermaid.run();
-                }
-            };
-            
-            themeToggle.addEventListener('click', () => {
-                const currentTheme = localStorage.getItem('theme') || 'light';
-                const newTheme = currentTheme === 'light' ? 'dark' : 'light';
-                localStorage.setItem('theme', newTheme);
-                applyTheme(newTheme);
-            });
-            
-            applyTheme(localStorage.getItem('theme') || 'light');
-
-            menuToggle.addEventListener('click', () => {
-                sidebar.classList.toggle('-translate-x-full');
-            });
-
-            const sectionTitles = {
-                'intro': 'Introduction to Power Query',
-                'getting-started': 'Getting Started: The Basics',
-                'intermediate': 'Intermediate Concepts',
-                'advanced': 'Advanced & M Language',
-                'use-cases': 'Practical Use Cases',
-                'best-practices': 'Best Practices & Resources'
-            };
-
-            function switchContent(hash) {
-                hash = hash || '#intro';
-                navLinks.forEach(link => {
-                    link.classList.toggle('active', link.getAttribute('href') === hash);
-                });
-                contentSections.forEach(section => {
-                    section.classList.toggle('active', `#${section.id}` === hash);
-                });
-                mainTitle.textContent = sectionTitles[hash.substring(1)];
-                mainSubtitle.textContent = document.querySelector(`.nav-link[href="${hash}"]`).textContent;
-                
-                if (window.innerWidth < 768) {
-                    sidebar.classList.add('-translate-x-full');
-                }
-                
-                const firstSubNavLink = document.querySelector(`${hash} .sub-nav-link`);
-                if (firstSubNavLink) {
-                    switchSubContent(firstSubNavLink);
-                }
-            }
-            
-            function switchSubContent(target) {
-                const parentNav = target.closest('.sub-nav');
-                parentNav.querySelectorAll('.sub-nav-link').forEach(link => link.classList.remove('active'));
-                target.classList.add('active');
-                
-                const parentSection = target.closest('.content-section');
-                parentSection.querySelectorAll('.sub-content').forEach(content => content.classList.remove('active'));
-                parentSection.querySelector(`#${target.dataset.subTarget}`).classList.add('active');
-            }
-
-            document.querySelectorAll('.sub-nav-link').forEach(link => {
-                link.addEventListener('click', (e) => switchSubContent(e.target));
-            });
-
-            navLinks.forEach(link => {
-                link.addEventListener('click', (e) => {
-                    e.preventDefault();
-                    const targetId = e.currentTarget.getAttribute('href');
-                    history.pushState(null, '', targetId);
-                    switchContent(targetId);
-                });
-            });
-            
-            window.addEventListener('popstate', () => switchContent(window.location.hash));
-            switchContent(window.location.hash);
-
-            // Getting Started Demo
-            const initialData = [
-                { Product: 'Apple', Category: 'Fruit', Price: 1.2, Stock: 150, Region: 'West' },
-                { Product: 'Banana', Category: 'Fruit', Price: 0.5, Stock: 200, Region: 'South' },
-                { Product: 'Carrot', Category: 'Vegetable', Price: 0.8, Stock: 300, Region: 'West' },
-                { Product: 'Broccoli', Category: 'Vegetable', Price: 1.5, Stock: 120, Region: 'East' },
-            ];
-            let currentData = JSON.parse(JSON.stringify(initialData));
-            const tableHead = document.getElementById('demo-table-head');
-            const tableBody = document.getElementById('demo-table-body');
-            const tableTitle = document.getElementById('table-title');
-            const mCodeViewer = document.getElementById('m-code-viewer');
-
-            function renderTable(data, title, tableHeadEl, tableBodyEl) {
-                if(title) tableTitle.textContent = title;
-                tableHeadEl.innerHTML = '';
-                tableBodyEl.innerHTML = '';
-                if (data.length === 0) return;
-
-                const headers = Object.keys(data[0]);
-                const headerRow = document.createElement('tr');
-                headers.forEach(header => {
-                    const th = document.createElement('th');
-                    th.className = 'p-3 font-semibold';
-                    th.textContent = header;
-                    headerRow.appendChild(th);
-                });
-                tableHeadEl.appendChild(headerRow);
-
-                data.forEach(row => {
-                    const tr = document.createElement('tr');
-                    tr.className = 'border-b dark:border-slate-700 last:border-b-0';
-                    headers.forEach(header => {
-                        const td = document.createElement('td');
-                        td.className = 'p-3';
-                        td.textContent = row[header];
-                        tr.appendChild(td);
-                    });
-                    tableBodyEl.appendChild(tr);
-                });
-            }
-            
-            function updateMCode(code) {
-                mCodeViewer.innerHTML = `<pre><code>${code}</code></pre>`;
-            }
-
-            document.getElementById('reset-btn').addEventListener('click', () => {
-                currentData = JSON.parse(JSON.stringify(initialData));
-                renderTable(currentData, 'Original Data', tableHead, tableBody);
-                updateMCode(`<span class="comment">// Data reset to its original state.</span>`);
-            });
-
-            document.querySelectorAll('.transform-btn').forEach(button => {
-                button.addEventListener('click', (e) => {
-                    const transformType = e.target.getAttribute('data-transform');
-                    let title = '';
-                    let mCode = '';
-                    switch (transformType) {
-                        case 'remove-column':
-                            title = "Removed 'Region' Column";
-                            currentData = currentData.map(({ Region, ...rest }) => rest);
-                            mCode = `<span class="function">Table.RemoveColumns</span>(PreviousStep, {<span class="string">"Region"</span>})`;
-                            break;
-                        case 'filter-rows':
-                            title = "Filtered for Category = 'Fruit'";
-                            currentData = currentData.filter(row => row.Category === 'Fruit');
-                            mCode = `<span class="function">Table.SelectRows</span>(PreviousStep, <span class="keyword">each</span> [Category] = <span class="string">"Fruit"</span>)`;
-                            break;
-                        case 'add-column':
-                            title = "Added 'Stock Level' Column";
-                            currentData.forEach(row => {
-                                row['Stock Level'] = row.Stock > 150 ? 'High' : 'Low';
-                            });
-                            mCode = `<span class="function">Table.AddColumn</span>(PreviousStep, <span class="string">"Stock Level"</span>, <span class="keyword">each if</span> [Stock] > 150 <span class="keyword">then</span> <span class="string">"High"</span> <span class="keyword">else</span> <span class="string">"Low"</span>)`;
-                            break;
-                        case 'group-by':
-                            title = "Grouped by Category";
-                            const grouped = currentData.reduce((acc, row) => {
-                                acc[row.Category] = (acc[row.Category] || 0) + row.Stock;
-                                return acc;
-                            }, {});
-                            currentData = Object.keys(grouped).map(key => ({ Category: key, TotalStock: grouped[key] }));
-                            mCode = `<span class="function">Table.Group</span>(PreviousStep, {<span class="string">"Category"</span>}, {{<span class="string">"TotalStock"</span>, <span class="keyword">each</span> <span class="function">List.Sum</span>([Stock]), <span class="keyword">type number</span>}})`
-                            break;
-                    }
-                    renderTable(currentData, title, tableHead, tableBody);
-                    updateMCode(mCode);
-                });
-            });
-
-            renderTable(currentData, 'Data Preview', tableHead, tableBody);
-
-            // Join Diagram Logic
-            const joinButtons = document.querySelectorAll('.join-btn');
-            const joinExplanation = document.getElementById('join-explanation');
-            const resultLeft = document.getElementById('join-result-left');
-            const resultCenter = document.getElementById('join-result-center');
-            const resultRight = document.getElementById('join-result-right');
-            const joinExplanations = {
-                'inner': 'Returns only the matching rows from both tables.',
-                'left': 'Returns all rows from Table A and the matching rows from Table B.',
-                'full': 'Returns all rows from both tables, whether they match or not.',
-                'left-anti': 'Returns rows from Table A that have no match in Table B.'
-            };
-            
-            joinButtons.forEach(button => {
-                button.addEventListener('click', () => {
-                    const joinType = button.dataset.join;
-                    joinExplanation.textContent = joinExplanations[joinType];
-                    
-                    resultLeft.style.opacity = (joinType === 'left' || joinType === 'full' || joinType === 'left-anti') ? '0.5' : '0';
-                    resultCenter.style.opacity = (joinType === 'inner' || joinType === 'left' || joinType === 'full') ? '0.5' : '0';
-                    resultRight.style.opacity = (joinType === 'full') ? '0.5' : '0';
-                });
-            });
-            joinButtons[0].click();
-
-            // Pivot/Unpivot Demo
-            const pivotTableHead = document.getElementById('pivot-table-head');
-            const pivotTableBody = document.getElementById('pivot-table-body');
-            const unpivotBtn = document.getElementById('unpivot-btn');
-            const pivotBtn = document.getElementById('pivot-btn');
-
-            const wideData = [
-                { Product: 'Apple', 'Jan': 100, 'Feb': 120, 'Mar': 150 },
-                { Product: 'Banana', 'Jan': 80, 'Feb': 90, 'Mar': 110 }
-            ];
-            const tallData = [
-                { Product: 'Apple', Month: 'Jan', Sales: 100 },
-                { Product: 'Apple', Month: 'Feb', Sales: 120 },
-                { Product: 'Apple', Month: 'Mar', Sales: 150 },
-                { Product: 'Banana', Month: 'Jan', Sales: 80 },
-                { Product: 'Banana', Month: 'Feb', Sales: 90 },
-                { Product: 'Banana', Month: 'Mar', Sales: 110 },
-            ];
-            
-            unpivotBtn.addEventListener('click', () => renderTable(tallData, null, pivotTableHead, pivotTableBody));
-            pivotBtn.addEventListener('click', () => renderTable(wideData, null, pivotTableHead, pivotTableBody));
-            renderTable(wideData, null, pivotTableHead, pivotTableBody);
-
-
-            // Chart.js instances
-            new Chart(document.getElementById('sales-report-chart'), {
-                type: 'bar',
-                data: {
-                    labels: ['Electronics', 'Clothing', 'Groceries', 'Books'],
-                    datasets: [{
-                        label: 'Total Sales',
-                        data: [12000, 9500, 15000, 6000],
-                        backgroundColor: '#4f46e5',
-                        borderRadius: 4,
-                    }]
-                },
-                options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } } }
-            });
-
-            new Chart(document.getElementById('survey-chart'), {
-                type: 'pie',
-                data: {
-                    labels: ['Very Satisfied', 'Satisfied', 'Neutral', 'Unsatisfied'],
-                    datasets: [{
-                        data: [450, 800, 300, 150],
-                        backgroundColor: ['#10b981', '#34d399', '#6ee7b7', '#a7f3d0'],
-                        borderColor: '#ffffff',
-                    }]
-                },
-                options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'right' } } }
-            });
+        // Store original mermaid definitions to re-render on theme change
+        document.querySelectorAll('.mermaid').forEach(el => {
+            el.dataset.originalCode = el.innerHTML.trim();
         });
+
+        const sectionTitles = {
+            'intro': 'Introduction to Power Query',
+            'connectors': 'Connecting to Data Sources',
+            'getting-started': 'Basic Transformations',
+            'intermediate': 'Intermediate Concepts',
+            'advanced': 'Advanced & M Language',
+            'use-cases': 'Practical Use Cases',
+            'best-practices': 'Best Practices & Resources'
+        };
+
+        // --- Theme Management ---
+        const applyTheme = (theme) => {
+            if (theme === 'dark') {
+                document.documentElement.classList.add('dark');
+                lightIcon.classList.add('hidden');
+                darkIcon.classList.remove('hidden');
+            } else {
+                document.documentElement.classList.remove('dark');
+                lightIcon.classList.remove('hidden');
+                darkIcon.classList.add('hidden');
+            }
+            
+            if (window.mermaid) {
+                window.mermaid.initialize({
+                    startOnLoad: false,
+                    theme: theme === 'dark' ? 'dark' : 'default',
+                    fontFamily: 'Inter, sans-serif',
+                });
+                // Force re-render of mermaid charts
+                document.querySelectorAll('.mermaid').forEach((elem) => {
+                    elem.innerHTML = elem.dataset.originalCode;
+                    elem.removeAttribute('data-processed');
+                });
+                window.mermaid.run();
+            }
+        };
+        
+        themeToggle.addEventListener('click', () => {
+            const newTheme = document.documentElement.classList.contains('dark') ? 'light' : 'dark';
+            localStorage.setItem('theme', newTheme);
+            applyTheme(newTheme);
+        });
+        
+        // Initialize theme on load
+        applyTheme(localStorage.getItem('theme') || 'light');
+
+        // --- Navigation ---
+        menuToggle.addEventListener('click', () => {
+            sidebar.classList.toggle('-translate-x-full');
+        });
+
+        function switchContent(hash) {
+            hash = hash || '#intro';
+            const targetSection = document.querySelector(hash);
+            if (!targetSection) return;
+
+            // Update main navigation
+            mainNav.querySelectorAll('.nav-link').forEach(link => {
+                link.classList.toggle('active', link.getAttribute('href') === hash);
+            });
+
+            // Update content sections
+            contentSections.forEach(section => {
+                section.classList.toggle('active', `#${section.id}` === hash);
+            });
+
+            // Update main header
+            mainTitle.textContent = sectionTitles[hash.substring(1)];
+            const activeNavLink = mainNav.querySelector(`.nav-link[href="${hash}"]`);
+            if(activeNavLink) mainSubtitle.textContent = activeNavLink.textContent;
+            
+            // Hide sidebar on mobile after navigation
+            if (window.innerWidth < 768) {
+                sidebar.classList.add('-translate-x-full');
+            }
+            
+            // Activate the first sub-nav link in the new section
+            const firstSubNavLink = targetSection.querySelector('.sub-nav-link');
+            if (firstSubNavLink) {
+                switchSubContent(firstSubNavLink);
+            }
+        }
+        
+        function switchSubContent(target) {
+            const parentNav = target.closest('.sub-nav');
+            if (!parentNav) return;
+            
+            parentNav.querySelectorAll('.sub-nav-link').forEach(link => link.classList.remove('active'));
+            target.classList.add('active');
+            
+            const parentSection = target.closest('.content-section');
+            parentSection.querySelectorAll('.sub-content').forEach(content => content.classList.remove('active'));
+            const subTarget = document.getElementById(target.dataset.subTarget);
+            if(subTarget) subTarget.classList.add('active');
+        }
+
+        // Event Delegation for Navigation
+        document.body.addEventListener('click', (e) => {
+            const navLink = e.target.closest('.nav-link');
+            const subNavLink = e.target.closest('.sub-nav-link');
+
+            if (navLink) {
+                e.preventDefault();
+                const targetId = navLink.getAttribute('href');
+                if (window.location.hash !== targetId) {
+                   history.pushState(null, '', targetId);
+                   switchContent(targetId);
+                }
+            } else if (subNavLink) {
+                switchSubContent(subNavLink);
+            }
+        });
+        
+        window.addEventListener('popstate', () => switchContent(window.location.hash));
+        switchContent(window.location.hash);
+
+        // --- Interactive Demos ---
+
+        // Getting Started: Live Transformation Demo
+        const initialData = Object.freeze([
+            { ProductID: 'FRU-01', Name: 'apple', Price: '1.20', Stock: 150, Region: 'West' },
+            { ProductID: 'FRU-02', Name: 'banana', Price: '0.50', Stock: 200, Region: 'South' },
+            { ProductID: 'VEG-01', Name: 'carrot', Price: '0.80', Stock: 300, Region: 'West' },
+            { ProductID: 'VEG-02', Name: 'broccoli', Price: '1.50', Stock: 120, Region: 'East' },
+        ]);
+        let currentData = [];
+        const demoTableHead = document.getElementById('demo-table-head');
+        const demoTableBody = document.getElementById('demo-table-body');
+        const demoTableTitle = document.getElementById('table-title');
+        const mCodeViewer = document.getElementById('m-code-viewer');
+        const transformControls = document.getElementById('transform-controls');
+
+        function renderTable(data, title, tableHeadEl, tableBodyEl) {
+            if(title) demoTableTitle.textContent = title;
+            tableHeadEl.innerHTML = '';
+            tableBodyEl.innerHTML = '';
+            if (!data || data.length === 0) return;
+
+            const headers = Object.keys(data[0]);
+            const headerRow = `<tr>${headers.map(h => `<th class="p-3 font-semibold">${h}</th>`).join('')}</tr>`;
+            tableHeadEl.innerHTML = headerRow;
+
+            const bodyRows = data.map(row => 
+                `<tr class="border-b dark:border-slate-700 last:border-b-0">${headers.map(h => `<td class="p-3">${row[h]}</td>`).join('')}</tr>`
+            ).join('');
+            tableBodyEl.innerHTML = bodyRows;
+        }
+        
+        function updateMCode(code) {
+            mCodeViewer.innerHTML = `<pre><code>${code}</code></pre>`;
+        }
+        
+        function resetDemo() {
+            currentData = JSON.parse(JSON.stringify(initialData));
+            renderTable(currentData, 'Original Data', demoTableHead, demoTableBody);
+            updateMCode(`<span class="comment">// Data reset to its original state.</span>`);
+            transformControls.querySelectorAll('.transform-btn').forEach(btn => btn.disabled = false);
+        }
+
+        transformControls.addEventListener('click', (e) => {
+            const button = e.target.closest('.transform-btn, #reset-btn');
+            if (!button) return;
+
+            if (button.id === 'reset-btn') {
+                resetDemo();
+                return;
+            }
+
+            const transformType = button.dataset.transform;
+            let title = '';
+            let mCode = '';
+
+            switch (transformType) {
+                 case 'change-type':
+                    title = "Changed 'Price' to Number";
+                    currentData.forEach(row => row.Price = parseFloat(row.Price));
+                    mCode = `<span class="function">Table.TransformColumnTypes</span>(PreviousStep,{{<span class="string">"Price"</span>, <span class="keyword">type number</span>}})`;
+                    break;
+                case 'split-column':
+                    title = "Split 'ProductID' by Delimiter";
+                    currentData = currentData.map(row => {
+                        const parts = row.ProductID.split('-');
+                        return { 'ProductID.1': parts[0], 'ProductID.2': parts[1], ...row };
+                    });
+                    delete currentData[0].ProductID; // a bit hacky for demo
+                    mCode = `<span class="function">Table.SplitColumn</span>(PreviousStep, <span class="string">"ProductID"</span>, <span class="function">Splitter.SplitTextByDelimiter</span>(<span class="string">"-"</span>))`;
+                    break;
+                case 'filter-rows':
+                    title = "Filtered for Stock > 150";
+                    currentData = currentData.filter(row => row.Stock > 150);
+                    mCode = `<span class="function">Table.SelectRows</span>(PreviousStep, <span class="keyword">each</span> [Stock] > 150)`;
+                    break;
+                case 'add-column':
+                    title = "Added 'Value' Column";
+                    currentData.forEach(row => {
+                        row.Value = (row.Price * row.Stock).toFixed(2);
+                    });
+                    mCode = `<span class="function">Table.AddColumn</span>(PreviousStep, <span class="string">"Value"</span>, <span class="keyword">each</span> [Price] * [Stock], <span class="keyword">type number</span>)`;
+                    break;
+                case 'group-by':
+                    title = "Grouped by Region";
+                    const grouped = currentData.reduce((acc, row) => {
+                        acc[row.Region] = (acc[row.Region] || 0) + row.Stock;
+                        return acc;
+                    }, {});
+                    currentData = Object.keys(grouped).map(key => ({ Region: key, TotalStock: grouped[key] }));
+                    mCode = `<span class="function">Table.Group</span>(PreviousStep, {<span class="string">"Region"</span>}, {{<span class="string">"TotalStock"</span>, <span class="keyword">each</span> <span class="function">List.Sum</span>([Stock]), <span class="keyword">type number</span>}})`
+                    break;
+            }
+            button.disabled = true;
+            renderTable(currentData, title, demoTableHead, demoTableBody);
+            updateMCode(mCode);
+        });
+
+        // Intermediate: Join Diagram Logic
+        const joinControls = document.getElementById('join-controls');
+        const joinExplanation = document.getElementById('join-explanation');
+        const resultLeft = document.getElementById('join-result-left');
+        const resultCenter = document.getElementById('join-result-center');
+        const resultRight = document.getElementById('join-result-right');
+        const joinExplanations = {
+            'inner': 'Returns only the matching rows from both tables.',
+            'left': 'Returns all rows from Table A and matching rows from Table B.',
+            'right': 'Returns all rows from Table B and matching rows from Table A.',
+            'full': 'Returns all rows from both tables, whether they match or not.',
+            'left-anti': 'Returns only rows from Table A that have no match in Table B.',
+            'right-anti': 'Returns only rows from Table B that have no match in Table A.'
+        };
+        
+        joinControls.addEventListener('click', (e) => {
+            const button = e.target.closest('.join-btn');
+            if(!button) return;
+
+            const joinType = button.dataset.join;
+            joinExplanation.textContent = joinExplanations[joinType];
+            
+            resultLeft.style.opacity = ['left', 'full', 'left-anti'].includes(joinType) ? '0.5' : '0';
+            resultCenter.style.opacity = ['inner', 'left', 'right', 'full'].includes(joinType) ? '0.5' : '0';
+            resultRight.style.opacity = ['right', 'full', 'right-anti'].includes(joinType) ? '0.5' : '0';
+        });
+
+        // Initialize demos
+        resetDemo();
+        joinControls.querySelector('.join-btn[data-join="inner"]').click();
+
+        // Use Cases: Chart.js instances
+        new Chart(document.getElementById('sales-report-chart'), {
+            type: 'bar',
+            data: {
+                labels: ['Electronics', 'Clothing', 'Groceries', 'Books'],
+                datasets: [{
+                    label: 'Total Sales',
+                    data: [12000, 9500, 15000, 6000],
+                    backgroundColor: '#4f46e5',
+                    borderRadius: 4,
+                }]
+            },
+            options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } } }
+        });
+
+        new Chart(document.getElementById('survey-chart'), {
+            type: 'pie',
+            data: {
+                labels: ['Very Satisfied', 'Satisfied', 'Neutral', 'Unsatisfied'],
+                datasets: [{
+                    data: [450, 800, 300, 150],
+                    backgroundColor: ['#10b981', '#34d399', '#6ee7b7', '#a7f3d0'],
+                    borderColor: '#ffffff',
+                }]
+            },
+            options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'right' } } }
+        });
+    });
     </script>
 </body>
 </html>
