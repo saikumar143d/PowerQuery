@@ -1,0 +1,343 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Interactive Guide to Power Query</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Chosen Palette: "Calm Harmony" (Warm neutrals: bg-stone-50, text-stone-800; Accent: accent-blue-600) -->
+    <!-- Application Structure Plan: A tab-based SPA (Intro, Getting Started, Intermediate, Advanced, Use Cases) was chosen to provide non-linear access to the content, allowing users to jump to sections relevant to their skill level. This is more user-friendly than a long scroll. Interactive demos for transformations and concepts will enhance learning and engagement. -->
+    <!-- Visualization & Content Choices: Basic transformations will be shown via interactive HTML tables updated with JS. Goal: Demonstrate change. Merging/Appending will use side-by-side tables and a final Chart.js bar chart to visualize the combined result. Goal: Compare & Inform. Use cases will use HTML/CSS diagrams and a final Chart.js chart for the sales report. Goal: Organize & Inform. M language examples will use styled code blocks. All choices avoid SVG/Mermaid and focus on direct interaction and clarity. -->
+    <!-- CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. -->
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+        .tab-btn { transition: all 0.3s ease; }
+        .tab-btn.active { border-color: #2563eb; color: #2563eb; background-color: #dbeafe; }
+        .tab-content { display: none; }
+        .tab-content.active { display: block; }
+        .code-block { background-color: #1f2937; color: #f3f4f6; padding: 1rem; border-radius: 0.5rem; overflow-x: auto; font-family: 'Courier New', Courier, monospace; }
+        .chart-container { position: relative; width: 100%; max-width: 600px; margin-left: auto; margin-right: auto; height: 350px; max-height: 400px; }
+        @media (max-width: 768px) { .chart-container { height: 300px; } }
+    </style>
+</head>
+<body class="bg-stone-50 text-stone-800">
+
+    <div class="container mx-auto p-4 md:p-8">
+        <header class="text-center mb-8">
+            <h1 class="text-4xl md:text-5xl font-bold text-stone-900">The Interactive Guide to Power Query</h1>
+            <p class="text-lg text-stone-600 mt-2">From Beginner to Advanced, Made Simple.</p>
+        </header>
+
+        <nav class="mb-8 border-b border-stone-200">
+            <ul class="flex flex-wrap -mb-px justify-center text-sm font-medium text-center text-stone-500">
+                <li class="mr-2"><button class="tab-btn inline-block p-4 border-b-2 border-transparent rounded-t-lg hover:text-stone-600 hover:border-stone-300" data-tab="intro">Introduction</button></li>
+                <li class="mr-2"><button class="tab-btn inline-block p-4 border-b-2 border-transparent rounded-t-lg hover:text-stone-600 hover:border-stone-300 active" data-tab="getting-started">Getting Started</button></li>
+                <li class="mr-2"><button class="tab-btn inline-block p-4 border-b-2 border-transparent rounded-t-lg hover:text-stone-600 hover:border-stone-300" data-tab="intermediate">Intermediate</button></li>
+                <li class="mr-2"><button class="tab-btn inline-block p-4 border-b-2 border-transparent rounded-t-lg hover:text-stone-600 hover:border-stone-300" data-tab="advanced">Advanced & M Language</button></li>
+                <li><button class="tab-btn inline-block p-4 border-b-2 border-transparent rounded-t-lg hover:text-stone-600 hover:border-stone-300" data-tab="use-cases">Practical Use Cases</button></li>
+            </ul>
+        </nav>
+
+        <main>
+            <!-- Introduction Tab -->
+            <section id="intro" class="tab-content">
+                <div class="bg-white p-6 rounded-lg shadow-sm">
+                    <h2 class="text-3xl font-bold mb-4">What is Power Query?</h2>
+                    <p class="mb-4"><strong>Power Query</strong> is a data connection and preparation technology that enables you to discover, connect to, combine, and refine data from various sources. It's a self-service <strong>ETL (Extract, Transform, Load)</strong> tool designed for business users, replacing complex manual processes with a repeatable, refreshable workflow.</p>
+                    <div class="grid md:grid-cols-3 gap-4 text-center">
+                        <div class="p-4 bg-blue-50 rounded-lg">
+                            <h3 class="font-bold text-blue-800">Extract</h3>
+                            <p>Connect and pull data from files, databases, and websites.</p>
+                        </div>
+                        <div class="p-4 bg-green-50 rounded-lg">
+                            <h3 class="font-bold text-green-800">Transform</h3>
+                            <p>Clean, shape, and remodel data with hundreds of transformations.</p>
+                        </div>
+                        <div class="p-4 bg-purple-50 rounded-lg">
+                            <h3 class="font-bold text-purple-800">Load</h3>
+                            <p>Load clean data into Excel, Power BI, or other destinations.</p>
+                        </div>
+                    </div>
+
+                    <h3 class="text-2xl font-bold mt-6 mb-3">Why Use Power Query?</h3>
+                    <ul class="list-disc list-inside space-y-2">
+                        <li><strong>Automation:</strong> Record steps once and refresh to re-run on new data, saving hours.</li>
+                        <li><strong>Data Accuracy:</strong> Eliminate manual errors with a consistent, automated process.</li>
+                        <li><strong>Large Datasets:</strong> Efficiently handle millions of rows, far beyond Excel's limits.</li>
+                        <li><strong>Repeatable Workflows:</strong> Share and reuse queries to standardize data preparation.</li>
+                        <li><strong>No-Code to Low-Code:</strong> Use the intuitive interface for most tasks, or the M language for advanced logic.</li>
+                    </ul>
+                </div>
+            </section>
+
+            <!-- Getting Started Tab -->
+            <section id="getting-started" class="tab-content active">
+                <div class="bg-white p-6 rounded-lg shadow-sm">
+                    <h2 class="text-3xl font-bold mb-4">Fundamental Transformations Demo</h2>
+                    <p class="mb-6">This section provides an interactive demonstration of common data transformations. Click a button on the left to see how it affects the sample data table on the right. The goal is to provide a hands-on feel for how Power Query reshapes data step-by-step.</p>
+                    <div class="grid md:grid-cols-3 gap-6">
+                        <div class="md:col-span-1 flex flex-col space-y-2">
+                            <button id="reset-btn" class="w-full text-left p-3 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition">Reset Data</button>
+                            <button class="transform-btn w-full text-left p-3 bg-stone-200 rounded-md hover:bg-stone-300 transition" data-transform="remove-column">1. Remove Column ('Region')</button>
+                            <button class="transform-btn w-full text-left p-3 bg-stone-200 rounded-md hover:bg-stone-300 transition" data-transform="filter-rows">2. Filter Rows (Category = 'Fruit')</button>
+                            <button class="transform-btn w-full text-left p-3 bg-stone-200 rounded-md hover:bg-stone-300 transition" data-transform="change-type">3. Change Data Type ('Price' to $)</button>
+                            <button class="transform-btn w-full text-left p-3 bg-stone-200 rounded-md hover:bg-stone-300 transition" data-transform="add-column">4. Add Conditional Column ('Stock Level')</button>
+                        </div>
+                        <div class="md:col-span-2">
+                            <h3 id="table-title" class="text-xl font-semibold mb-2">Original Data</h3>
+                            <div class="overflow-x-auto">
+                                <table id="demo-table" class="w-full text-sm text-left text-stone-500">
+                                    <thead id="demo-table-head" class="text-xs text-stone-700 uppercase bg-stone-100"></thead>
+                                    <tbody id="demo-table-body"></tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Intermediate Tab -->
+            <section id="intermediate" class="tab-content">
+                <div class="bg-white p-6 rounded-lg shadow-sm">
+                    <h2 class="text-3xl font-bold mb-4">Merging & Appending Queries</h2>
+                    <p class="mb-6">This section explains how to combine data from multiple sources. Appending stacks tables on top of each other, while merging joins them side-by-side based on a common column. The chart below visualizes the result of appending Q1 and Q2 sales data.</p>
+                    <div class="grid md:grid-cols-2 gap-6 mb-6">
+                        <div>
+                            <h3 class="font-semibold mb-2">Q1 Sales</h3>
+                            <table class="w-full text-sm text-left text-stone-500">
+                                <thead class="text-xs text-stone-700 uppercase bg-stone-100"><tr><th class="p-2">ProductID</th><th class="p-2">Sales</th></tr></thead>
+                                <tbody>
+                                    <tr class="bg-white border-b"><td class="p-2">P101</td><td class="p-2">500</td></tr>
+                                    <tr class="bg-white border-b"><td class="p-2">P102</td><td class="p-2">750</td></tr>
+                                </tbody>
+                            </table>
+                        </div>
+                        <div>
+                            <h3 class="font-semibold mb-2">Q2 Sales</h3>
+                            <table class="w-full text-sm text-left text-stone-500">
+                                <thead class="text-xs text-stone-700 uppercase bg-stone-100"><tr><th class="p-2">ProductID</th><th class="p-2">Sales</th></tr></thead>
+                                <tbody>
+                                    <tr class="bg-white border-b"><td class="p-2">P101</td><td class="p-2">600</td></tr>
+                                    <tr class="bg-white border-b"><td class="p-2">P103</td><td class="p-2">900</td></tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                    <div class="chart-container">
+                        <canvas id="append-chart"></canvas>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Advanced Tab -->
+            <section id="advanced" class="tab-content">
+                 <div class="bg-white p-6 rounded-lg shadow-sm">
+                    <h2 class="text-3xl font-bold mb-4">Advanced Concepts & M Language</h2>
+                    <p class="mb-6">For ultimate control, you can directly edit the Power Query M language. Every UI action generates M code, but you can write your own for complex logic, custom functions, and robust error handling. This section introduces the core concepts.</p>
+                    <div class="space-y-4" id="accordion">
+                        <div class="border border-stone-200 rounded-lg">
+                            <button class="accordion-header flex justify-between items-center w-full p-4 text-left font-semibold">
+                                <span>Introduction to M Language</span>
+                                <span>&#9660;</span>
+                            </button>
+                            <div class="accordion-content hidden p-4 border-t border-stone-200">
+                                <p>M is a functional, case-sensitive language. All queries are structured in a `let...in` block. The `let` block contains the sequence of transformation steps, and the `in` block specifies the final output.</p>
+                                <div class="code-block mt-2">
+                                    <pre><code>let
+    Source = Csv.Document(File.Contents("C:\Data.csv")),
+    #"Changed Type" = Table.TransformColumnTypes(Source, {{"Amount", type number}})
+in
+    #"Changed Type"</code></pre>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="border border-stone-200 rounded-lg">
+                            <button class="accordion-header flex justify-between items-center w-full p-4 text-left font-semibold">
+                                <span>Error Handling with 'try...otherwise'</span>
+                                <span>&#9660;</span>
+                            </button>
+                            <div class="accordion-content hidden p-4 border-t border-stone-200">
+                                <p>You can create robust queries that don't fail on bad data. The `try...otherwise` expression attempts an operation and provides a fallback value if an error occurs.</p>
+                                <div class="code-block mt-2">
+                                    <pre><code>// Custom column formula to convert text to a number,
+// returning null if an error occurs.
+try Number.From([ValueColumn]) otherwise null</code></pre>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Use Cases Tab -->
+            <section id="use-cases" class="tab-content">
+                <div class="bg-white p-6 rounded-lg shadow-sm">
+                    <h2 class="text-3xl font-bold mb-4">Practical Use Cases</h2>
+                    <p class="mb-6">Theory is great, but practice is better. This section walks through a common real-world scenario: automating sales reporting by combining multiple files and summarizing the data. The chart below shows the final output of such a process: total sales aggregated by product category.</p>
+                    <div class="border border-stone-200 p-4 rounded-lg">
+                        <h3 class="font-semibold text-xl mb-2">Use Case 1: Sales Reporting Automation</h3>
+                        <p class="mb-4">Combine multiple monthly sales CSVs, merge with product lookup data, and group to calculate total sales per category.</p>
+                        <div class="chart-container">
+                            <canvas id="sales-report-chart"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Tab navigation
+            const tabButtons = document.querySelectorAll('.tab-btn');
+            const tabContents = document.querySelectorAll('.tab-content');
+
+            tabButtons.forEach(button => {
+                button.addEventListener('click', () => {
+                    tabButtons.forEach(btn => btn.classList.remove('active'));
+                    button.classList.add('active');
+
+                    const tabId = button.getAttribute('data-tab');
+                    tabContents.forEach(content => {
+                        content.id === tabId ? content.classList.add('active') : content.classList.remove('active');
+                    });
+                });
+            });
+
+            // Accordion for Advanced section
+            const accordions = document.querySelectorAll('.accordion-header');
+            accordions.forEach(accordion => {
+                accordion.addEventListener('click', () => {
+                    const content = accordion.nextElementSibling;
+                    content.classList.toggle('hidden');
+                    const icon = accordion.querySelector('span:last-child');
+                    icon.textContent = content.classList.contains('hidden') ? '\u25B2' : '\u25BC'; // Up/Down arrow
+                });
+            });
+
+            // Getting Started Demo
+            const initialData = [
+                { Product: 'Apple', Category: 'Fruit', Price: 1.2, Stock: 150, Region: 'West' },
+                { Product: 'Banana', Category: 'Fruit', Price: 0.5, Stock: 200, Region: 'South' },
+                { Product: 'Carrot', Category: 'Vegetable', Price: 0.8, Stock: 300, Region: 'West' },
+                { Product: 'Broccoli', Category: 'Vegetable', Price: 1.5, Stock: 120, Region: 'East' },
+            ];
+            let currentData = JSON.parse(JSON.stringify(initialData));
+            const tableHead = document.getElementById('demo-table-head');
+            const tableBody = document.getElementById('demo-table-body');
+            const tableTitle = document.getElementById('table-title');
+
+            function renderTable(data, title) {
+                tableTitle.textContent = title;
+                tableHead.innerHTML = '';
+                tableBody.innerHTML = '';
+                if (data.length === 0) return;
+
+                const headers = Object.keys(data[0]);
+                const headerRow = document.createElement('tr');
+                headers.forEach(header => {
+                    const th = document.createElement('th');
+                    th.scope = 'col';
+                    th.className = 'p-3';
+                    th.textContent = header;
+                    headerRow.appendChild(th);
+                });
+                tableHead.appendChild(headerRow);
+
+                data.forEach(row => {
+                    const tr = document.createElement('tr');
+                    tr.className = 'bg-white border-b';
+                    headers.forEach(header => {
+                        const td = document.createElement('td');
+                        td.className = 'p-3';
+                        td.textContent = row[header];
+                        tr.appendChild(td);
+                    });
+                    tableBody.appendChild(tr);
+                });
+            }
+
+            document.getElementById('reset-btn').addEventListener('click', () => {
+                currentData = JSON.parse(JSON.stringify(initialData));
+                renderTable(currentData, 'Original Data');
+            });
+
+            document.querySelectorAll('.transform-btn').forEach(button => {
+                button.addEventListener('click', (e) => {
+                    const transformType = e.target.getAttribute('data-transform');
+                    let title = '';
+                    switch (transformType) {
+                        case 'remove-column':
+                            title = "After Removing 'Region' Column";
+                            currentData = currentData.map(({ Region, ...rest }) => rest);
+                            break;
+                        case 'filter-rows':
+                            title = "After Filtering for 'Fruit'";
+                            currentData = currentData.filter(row => row.Category === 'Fruit');
+                            break;
+                        case 'change-type':
+                            title = "After Changing 'Price' Data Type";
+                            currentData.forEach(row => {
+                                if (typeof row.Price === 'number') {
+                                    row.Price = `$${row.Price.toFixed(2)}`;
+                                }
+                            });
+                            break;
+                        case 'add-column':
+                            title = "After Adding 'Stock Level' Column";
+                            currentData.forEach(row => {
+                                row['Stock Level'] = row.Stock > 150 ? 'High' : 'Low';
+                            });
+                            break;
+                    }
+                    renderTable(currentData, title);
+                });
+            });
+
+            // Initial render
+            renderTable(currentData, 'Original Data');
+
+            // Chart.js instances
+            // Intermediate Chart
+            new Chart(document.getElementById('append-chart'), {
+                type: 'bar',
+                data: {
+                    labels: ['P101', 'P102', 'P103'],
+                    datasets: [{
+                        label: 'Total Sales (Appended Q1 & Q2)',
+                        data: [1100, 750, 900],
+                        backgroundColor: ['#3b82f6', '#16a34a', '#9333ea'],
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { display: false } },
+                    scales: { y: { beginAtZero: true } }
+                }
+            });
+
+            // Use Case Chart
+            new Chart(document.getElementById('sales-report-chart'), {
+                type: 'doughnut',
+                data: {
+                    labels: ['Electronics', 'Clothing', 'Groceries', 'Books'],
+                    datasets: [{
+                        label: 'Sales by Category',
+                        data: [12000, 9500, 15000, 6000],
+                        backgroundColor: ['#3b82f6', '#16a34a', '#9333ea', '#f59e0b'],
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                }
+            });
+        });
+    </script>
+</body>
+</html>
