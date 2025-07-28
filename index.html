@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en" class="light">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -8,6 +8,7 @@
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script type="module">
         import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.esm.min.mjs';
+        mermaid.initialize({ startOnLoad: true, theme: 'dark', fontFamily: 'Inter, sans-serif' });
         window.mermaid = mermaid;
     </script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -15,37 +16,21 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <!-- 
         Enhancement Plan:
-        1. Efficiency: Refactored JS to use event delegation for navigation and interactive demos, reducing listener overhead. Optimized DOM lookups by scoping them to relevant containers.
-        2. Layout & UX: Improved visual hierarchy with refined spacing and typography. Added clearer interactive feedback (e.g., disabled states on buttons, more hover effects). Enhanced mobile responsiveness.
-        3. Mermaid Fix: Corrected the Mermaid graph definition syntax and ensured the theme-switching logic re-renders the chart correctly, fixing the reported display error.
-        4. Content Deep Dive:
-            - Introduction: Added a new "ETL Explained" section.
-            - Getting Started: Expanded the demo with more transformations (Change Type, Split Column).
-            - Intermediate: Added a new "Append vs. Merge" explanation and a section on Data Profiling. Completed the join visualizer with all types.
-            - Advanced: Included new subsections for Error Handling (`try...otherwise`) and a more complex M function example (`List.Generate`).
-            - New Section: Created a "Data Connectors" section to showcase source diversity.
-            - Best Practices: Added more actionable tips.
+        1. Theme: Converted to a permanent, AMOLED-friendly dark theme. Removed all theme-switching logic and the toggle button.
+        2. Colors: Changed background to true black (#000000) and secondary elements to a dark gray for depth and OLED efficiency. Adjusted text and accent colors for high contrast.
+        3. Mermaid Fix: Corrected the display issue by simplifying initialization and ensuring it runs correctly on load. Added direct styling within the mermaid definition for better visibility.
+        4. Join Visualization: Overhauled the join diagram. It now uses distinct, vibrant colors for each part of the Venn diagram (left, right, center) for much clearer identification of what each join type returns. The JS logic was updated to control these new colored areas precisely.
     -->
     <style>
         :root {
-            --primary-color: #4f46e5;
-            --primary-hover: #4338ca;
-            --accent-color: #10b981;
-            --text-primary: #1f2937;
-            --text-secondary: #6b7280;
-            --bg-primary: #f9fafb;
-            --bg-secondary: #ffffff;
-            --border-color: #e5e7eb;
-        }
-        html.dark {
-            --primary-color: #6366f1;
-            --primary-hover: #818cf8;
+            --primary-color: #818cf8; /* Lighter Indigo for dark bg */
+            --primary-hover: #a7a9fc;
             --accent-color: #34d399;
             --text-primary: #f3f4f6;
-            --text-secondary: #9ca3af;
-            --bg-primary: #111827;
-            --bg-secondary: #1f2937;
-            --border-color: #374151;
+            --text-secondary: #a1a1aa;
+            --bg-primary: #000000; /* True black for AMOLED */
+            --bg-secondary: #18181b; /* Dark gray for cards */
+            --border-color: #27272a;
         }
         body { 
             font-family: 'Inter', sans-serif; 
@@ -53,41 +38,42 @@
             color: var(--text-primary);
         }
         .nav-link { transition: all 0.2s ease-in-out; }
-        .nav-link.active { background-color: var(--primary-color); color: white; }
-        .nav-link:not(.active):hover { background-color: rgba(79, 70, 229, 0.1); }
-        .dark .nav-link:not(.active):hover { background-color: #3730a3; }
+        .nav-link.active { background-color: var(--primary-color); color: black; font-weight: 600; }
+        .nav-link:not(.active):hover { background-color: #27272a; }
         .sub-nav-link { transition: all 0.2s ease-in-out; border-bottom: 2px solid transparent; }
         .sub-nav-link.active { border-color: var(--primary-color); color: var(--primary-color); }
-        .dark .sub-nav-link.active { color: var(--primary-hover); border-color: var(--primary-hover); }
         .content-section, .sub-content { display: none; animation: fadeIn 0.5s; }
         .content-section.active, .sub-content.active { display: block; }
-        .code-block { background-color: #1e293b; color: #e2e8f0; padding: 1rem; border-radius: 0.5rem; overflow-x: auto; font-family: 'SF Mono', 'Courier New', monospace; font-size: 0.9em; line-height: 1.6; }
-        .code-block .comment { color: #64748b; }
-        .code-block .function { color: #34d399; }
-        .code-block .string { color: #f59e0b; }
-        .code-block .keyword { color: #ec4899; }
+        .code-block { background-color: #1a1a1a; color: #e2e8f0; padding: 1rem; border-radius: 0.5rem; overflow-x: auto; font-family: 'SF Mono', 'Courier New', monospace; font-size: 0.9em; line-height: 1.6; border: 1px solid var(--border-color); }
+        .code-block .comment { color: #71717a; }
+        .code-block .function { color: #4ade80; }
+        .code-block .string { color: #facc15; }
+        .code-block .keyword { color: #f472b6; }
         .chart-container { position: relative; width: 100%; max-width: 550px; margin-left: auto; margin-right: auto; height: 320px; max-height: 350px; }
         .interactive-card { transition: transform 0.2s, box-shadow 0.2s; background-color: var(--bg-secondary); border: 1px solid var(--border-color); }
-        .interactive-card:hover { transform: translateY(-4px); box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.07), 0 4px 6px -4px rgb(0 0 0 / 0.07); }
-        .join-diagram .table { border: 2px solid; border-radius: 50%; width: 80px; height: 80px; display: flex; align-items: center; justify-content: center; font-weight: 600; transition: all 0.3s ease; }
-        .join-diagram .table-a { border-color: #4f46e5; background-color: #c7d2fe; color: #312e81; }
-        .join-diagram .table-b { border-color: #10b981; background-color: #a7f3d0; color: #064e3b; }
-        .join-diagram .result-area { transition: opacity 0.4s ease; }
+        .interactive-card:hover { transform: translateY(-4px); box-shadow: 0 8px 25px -3px rgb(255 255 255 / 0.05); border-color: #3f3f46; }
+        
+        /* Join Diagram Styles */
+        .join-diagram { position: relative; height: 120px; display: flex; align-items: center; justify-content: center; }
+        .join-diagram .circle { position: absolute; width: 100px; height: 100px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 600; }
+        .join-diagram .circle-a { border: 2px solid #818cf8; color: #e0e7ff; left: calc(50% - 65px); }
+        .join-diagram .circle-b { border: 2px solid #34d399; color: #d1fae5; left: calc(50% - 15px); }
+        .join-diagram .result-area { position: absolute; width: 100px; height: 100px; border-radius: 50%; opacity: 0; transition: opacity 0.4s ease; mix-blend-mode: screen; }
+        .join-diagram .result-left { background-color: #4f46e5; left: calc(50% - 65px); }
+        .join-diagram .result-right { background-color: #10b981; left: calc(50% - 15px); }
+        .join-diagram .result-center { background-color: #c026d3; /* Vibrant magenta for intersection */ }
+
         .transform-btn:disabled { opacity: 0.5; cursor: not-allowed; }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
     </style>
 </head>
-<body class="bg-slate-50 dark:bg-slate-950 text-slate-800 dark:text-slate-200">
+<body class="bg-black text-slate-200">
 
     <div class="flex min-h-screen">
         <!-- Sidebar Navigation -->
-        <aside id="sidebar" class="w-64 bg-white dark:bg-slate-900 p-6 border-r border-slate-200 dark:border-slate-800 fixed h-full transform -translate-x-full md:translate-x-0 transition-transform duration-300 ease-in-out z-30">
+        <aside id="sidebar" class="w-64 bg-black p-6 border-r border-slate-800 fixed h-full transform -translate-x-full md:translate-x-0 transition-transform duration-300 ease-in-out z-30">
             <div class="flex justify-between items-center mb-8">
-                <h2 class="text-2xl font-bold text-slate-900 dark:text-white">Power Query</h2>
-                <button id="theme-toggle" class="p-2 rounded-full hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-500 dark:text-slate-400">
-                    <svg id="theme-icon-light" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"></path></svg>
-                    <svg id="theme-icon-dark" class="w-5 h-5 hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"></path></svg>
-                </button>
+                <h2 class="text-2xl font-bold text-white">Power Query</h2>
             </div>
             <nav id="main-nav">
                 <ul class="space-y-2">
@@ -103,10 +89,10 @@
         </aside>
 
         <!-- Mobile Header -->
-        <header class="md:hidden fixed top-0 left-0 right-0 bg-white/80 dark:bg-slate-900/80 backdrop-blur-sm z-20 border-b border-slate-200 dark:border-slate-700">
+        <header class="md:hidden fixed top-0 left-0 right-0 bg-black/80 backdrop-blur-sm z-20 border-b border-slate-800">
             <div class="flex items-center justify-between p-4">
-                <h1 class="text-lg font-bold text-slate-900 dark:text-white">Power Query Guide</h1>
-                <button id="menu-toggle" class="p-2 text-slate-600 dark:text-slate-300">
+                <h1 class="text-lg font-bold text-white">Power Query Guide</h1>
+                <button id="menu-toggle" class="p-2 text-slate-300">
                     <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16m-7 6h7"></path></svg>
                 </button>
             </div>
@@ -115,14 +101,14 @@
         <!-- Main Content -->
         <main class="flex-1 md:ml-64 p-6 pt-24 md:pt-10 md:p-10">
             <header class="mb-10">
-                <h1 id="main-title" class="text-4xl font-bold text-slate-900 dark:text-white">Welcome to the Guide</h1>
-                <p id="main-subtitle" class="text-lg text-slate-600 dark:text-slate-400 mt-1">Select a topic to begin your journey.</p>
+                <h1 id="main-title" class="text-4xl font-bold text-white">Welcome to the Guide</h1>
+                <p id="main-subtitle" class="text-lg text-slate-400 mt-1">Select a topic to begin your journey.</p>
             </header>
 
             <!-- Introduction Section -->
             <section id="intro" class="content-section active">
-                <nav class="sub-nav border-b border-slate-200 dark:border-slate-700 mb-6">
-                    <ul class="flex space-x-6 text-slate-500 dark:text-slate-400">
+                <nav class="sub-nav border-b border-slate-800 mb-6">
+                    <ul class="flex space-x-6 text-slate-400">
                         <li><button class="sub-nav-link py-3 font-medium active" data-sub-target="intro-what">What is it?</button></li>
                         <li><button class="sub-nav-link py-3 font-medium" data-sub-target="intro-etl">ETL Explained</button></li>
                         <li><button class="sub-nav-link py-3 font-medium" data-sub-target="intro-why">Why use it?</button></li>
@@ -130,34 +116,34 @@
                     </ul>
                 </nav>
                 <div id="intro-what" class="sub-content active">
-                    <div class="bg-white dark:bg-slate-900 p-8 rounded-lg shadow-md">
+                    <div class="bg-slate-900 p-8 rounded-lg">
                         <h2 class="text-3xl font-bold mb-4">What is Power Query?</h2>
                         <p class="mb-6 text-lg leading-relaxed"><strong>Power Query</strong> is a data transformation and data preparation engine. It provides a graphical user interface for getting data from sources and a Power Query Editor for applying transformations. Because the engine is available in many products and services, the data preparation experience, and the queries you create, are portable across them.</p>
                         <p class="text-lg leading-relaxed">Think of it as your personal data assistant, automating the tedious 80% of work that is data preparation, so you can focus on the valuable 20% that is analysis and insight. It records your steps and lets you repeat them on-demand with a single click.</p>
                     </div>
                 </div>
                 <div id="intro-etl" class="sub-content">
-                    <div class="bg-white dark:bg-slate-900 p-8 rounded-lg shadow-md">
+                    <div class="bg-slate-900 p-8 rounded-lg">
                         <h2 class="text-3xl font-bold mb-4">The ETL Process Explained</h2>
                         <p class="mb-6 text-lg leading-relaxed">Power Query is a classic <strong>ETL</strong> tool. ETL stands for Extract, Transform, and Load, which is the core process of data integration.</p>
                         <ul class="space-y-4 text-lg">
                             <li class="flex items-start">
-                                <span class="text-2xl font-bold text-indigo-500 mr-4">E</span>
+                                <span class="text-2xl font-bold text-indigo-400 mr-4">E</span>
                                 <div><strong>Extract:</strong> The first step is to connect to and retrieve data from its original source. This could be a simple Excel file, a complex SQL database, a web page, or hundreds of other sources.</div>
                             </li>
                             <li class="flex items-start">
-                                <span class="text-2xl font-bold text-emerald-500 mr-4">T</span>
+                                <span class="text-2xl font-bold text-emerald-400 mr-4">T</span>
                                 <div><strong>Transform:</strong> This is the heart of Power Query. After extracting the data, you clean, shape, and enrich it. This includes removing errors, changing data types, splitting columns, merging tables, and applying business logic to make the data usable for analysis.</div>
                             </li>
                             <li class="flex items-start">
-                                <span class="text-2xl font-bold text-rose-500 mr-4">L</span>
+                                <span class="text-2xl font-bold text-rose-400 mr-4">L</span>
                                 <div><strong>Load:</strong> Once the data is perfectly transformed, you load it to a destination. This could be a worksheet in Excel, the data model in Power BI, or another destination where it can be analyzed and visualized.</div>
                             </li>
                         </ul>
                     </div>
                 </div>
                 <div id="intro-why" class="sub-content">
-                     <div class="bg-white dark:bg-slate-900 p-8 rounded-lg shadow-md">
+                     <div class="bg-slate-900 p-8 rounded-lg">
                          <h3 class="text-3xl font-bold mb-4">Why is Power Query a Game-Changer?</h3>
                          <ul class="list-disc list-inside space-y-3 text-lg">
                              <li><strong>Automates Repetitive Work:</strong> Record a set of cleaning steps once. When new data arrives, just click "Refresh" to repeat the entire process flawlessly in seconds.</li>
@@ -169,16 +155,16 @@
                      </div>
                 </div>
                 <div id="intro-where" class="sub-content">
-                    <div class="bg-white dark:bg-slate-900 p-8 rounded-lg shadow-md">
+                    <div class="bg-slate-900 p-8 rounded-lg">
                         <h3 class="text-3xl font-bold mb-4">Where is Power Query Used?</h3>
                         <p class="mb-6 text-lg">Power Query is the standard data preparation tool across the Microsoft ecosystem, ensuring a consistent experience wherever you work:</p>
                         <div class="grid grid-cols-2 md:grid-cols-3 gap-4 text-center">
-                            <div class="bg-slate-100 dark:bg-slate-800 p-4 rounded-lg font-medium">Microsoft Excel</div>
-                            <div class="bg-slate-100 dark:bg-slate-800 p-4 rounded-lg font-medium">Power BI Desktop</div>
-                            <div class="bg-slate-100 dark:bg-slate-800 p-4 rounded-lg font-medium">Power Platform</div>
-                            <div class="bg-slate-100 dark:bg-slate-800 p-4 rounded-lg font-medium">Azure Data Factory</div>
-                            <div class="bg-slate-100 dark:bg-slate-800 p-4 rounded-lg font-medium">SQL Server Analysis Services</div>
-                            <div class="bg-slate-100 dark:bg-slate-800 p-4 rounded-lg font-medium">Dataverse</div>
+                            <div class="bg-slate-800 p-4 rounded-lg font-medium">Microsoft Excel</div>
+                            <div class="bg-slate-800 p-4 rounded-lg font-medium">Power BI Desktop</div>
+                            <div class="bg-slate-800 p-4 rounded-lg font-medium">Power Platform</div>
+                            <div class="bg-slate-800 p-4 rounded-lg font-medium">Azure Data Factory</div>
+                            <div class="bg-slate-800 p-4 rounded-lg font-medium">SQL Server Analysis Services</div>
+                            <div class="bg-slate-800 p-4 rounded-lg font-medium">Dataverse</div>
                         </div>
                     </div>
                 </div>
@@ -186,7 +172,7 @@
             
             <!-- Data Connectors Section -->
             <section id="connectors" class="content-section">
-                 <div class="bg-white dark:bg-slate-900 p-8 rounded-lg shadow-md">
+                 <div class="bg-slate-900 p-8 rounded-lg">
                     <h2 class="text-3xl font-bold mb-2">Connecting to Data</h2>
                     <p class="mb-6 text-lg">Power Query's strength begins with its vast array of connectors, allowing you to pull data from virtually anywhere.</p>
                     <div class="space-y-6">
@@ -194,33 +180,33 @@
                             <h3 class="text-xl font-semibold mb-3">File Sources</h3>
                             <p class="mb-4">Connect to local files or files in network shares and SharePoint. The "From Folder" connector is especially powerful, allowing you to combine hundreds of files at once.</p>
                             <div class="flex flex-wrap gap-4">
-                                <span class="bg-blue-100 text-blue-800 text-sm font-medium me-2 px-2.5 py-0.5 rounded dark:bg-blue-900 dark:text-blue-300">Excel Workbook</span>
-                                <span class="bg-gray-100 text-gray-800 text-sm font-medium me-2 px-2.5 py-0.5 rounded dark:bg-gray-700 dark:text-gray-300">Text/CSV</span>
-                                <span class="bg-yellow-100 text-yellow-800 text-sm font-medium me-2 px-2.5 py-0.5 rounded dark:bg-yellow-900 dark:text-yellow-300">JSON</span>
-                                <span class="bg-red-100 text-red-800 text-sm font-medium me-2 px-2.5 py-0.5 rounded dark:bg-red-900 dark:text-red-300">PDF</span>
-                                <span class="bg-green-100 text-green-800 text-sm font-medium me-2 px-2.5 py-0.5 rounded dark:bg-green-900 dark:text-green-300">Folder</span>
+                                <span class="bg-blue-900 text-blue-300 text-sm font-medium me-2 px-2.5 py-0.5 rounded">Excel Workbook</span>
+                                <span class="bg-gray-700 text-gray-300 text-sm font-medium me-2 px-2.5 py-0.5 rounded">Text/CSV</span>
+                                <span class="bg-yellow-900 text-yellow-300 text-sm font-medium me-2 px-2.5 py-0.5 rounded">JSON</span>
+                                <span class="bg-red-900 text-red-300 text-sm font-medium me-2 px-2.5 py-0.5 rounded">PDF</span>
+                                <span class="bg-green-900 text-green-300 text-sm font-medium me-2 px-2.5 py-0.5 rounded">Folder</span>
                             </div>
                         </div>
                         <div>
                             <h3 class="text-xl font-semibold mb-3">Database Sources</h3>
                             <p class="mb-4">Pull data directly from enterprise-level databases. For many of these, Power Query can use Query Folding to push transformations back to the source, dramatically improving performance.</p>
                              <div class="flex flex-wrap gap-4">
-                                <span class="bg-purple-100 text-purple-800 text-sm font-medium me-2 px-2.5 py-0.5 rounded dark:bg-purple-900 dark:text-purple-300">SQL Server</span>
-                                <span class="bg-indigo-100 text-indigo-800 text-sm font-medium me-2 px-2.5 py-0.5 rounded dark:bg-indigo-900 dark:text-indigo-300">Oracle</span>
-                                <span class="bg-pink-100 text-pink-800 text-sm font-medium me-2 px-2.5 py-0.5 rounded dark:bg-pink-900 dark:text-pink-300">MySQL</span>
-                                <span class="bg-sky-100 text-sky-800 text-sm font-medium me-2 px-2.5 py-0.5 rounded dark:bg-sky-900 dark:text-sky-300">PostgreSQL</span>
-                                <span class="bg-amber-100 text-amber-800 text-sm font-medium me-2 px-2.5 py-0.5 rounded dark:bg-amber-900 dark:text-amber-300">Teradata</span>
+                                <span class="bg-purple-900 text-purple-300 text-sm font-medium me-2 px-2.5 py-0.5 rounded">SQL Server</span>
+                                <span class="bg-indigo-900 text-indigo-300 text-sm font-medium me-2 px-2.5 py-0.5 rounded">Oracle</span>
+                                <span class="bg-pink-900 text-pink-300 text-sm font-medium me-2 px-2.5 py-0.5 rounded">MySQL</span>
+                                <span class="bg-sky-900 text-sky-300 text-sm font-medium me-2 px-2.5 py-0.5 rounded">PostgreSQL</span>
+                                <span class="bg-amber-900 text-amber-300 text-sm font-medium me-2 px-2.5 py-0.5 rounded">Teradata</span>
                             </div>
                         </div>
                         <div>
                             <h3 class="text-xl font-semibold mb-3">Online & Cloud Sources</h3>
                             <p class="mb-4">Connect to data from web pages, APIs, and a huge range of cloud services and platforms.</p>
                              <div class="flex flex-wrap gap-4">
-                                <span class="bg-rose-100 text-rose-800 text-sm font-medium me-2 px-2.5 py-0.5 rounded dark:bg-rose-900 dark:text-rose-300">Web</span>
-                                <span class="bg-teal-100 text-teal-800 text-sm font-medium me-2 px-2.5 py-0.5 rounded dark:bg-teal-900 dark:text-teal-300">SharePoint List</span>
-                                <span class="bg-cyan-100 text-cyan-800 text-sm font-medium me-2 px-2.5 py-0.5 rounded dark:bg-cyan-900 dark:text-cyan-300">Azure SQL DB</span>
-                                <span class="bg-lime-100 text-lime-800 text-sm font-medium me-2 px-2.5 py-0.5 rounded dark:bg-lime-900 dark:text-lime-300">Salesforce</span>
-                                <span class="bg-fuchsia-100 text-fuchsia-800 text-sm font-medium me-2 px-2.5 py-0.5 rounded dark:bg-fuchsia-900 dark:text-fuchsia-300">OData Feed</span>
+                                <span class="bg-rose-900 text-rose-300 text-sm font-medium me-2 px-2.5 py-0.5 rounded">Web</span>
+                                <span class="bg-teal-900 text-teal-300 text-sm font-medium me-2 px-2.5 py-0.5 rounded">SharePoint List</span>
+                                <span class="bg-cyan-900 text-cyan-300 text-sm font-medium me-2 px-2.5 py-0.5 rounded">Azure SQL DB</span>
+                                <span class="bg-lime-900 text-lime-300 text-sm font-medium me-2 px-2.5 py-0.5 rounded">Salesforce</span>
+                                <span class="bg-fuchsia-900 text-fuchsia-300 text-sm font-medium me-2 px-2.5 py-0.5 rounded">OData Feed</span>
                             </div>
                         </div>
                     </div>
@@ -229,26 +215,26 @@
 
             <!-- Getting Started Section -->
             <section id="getting-started" class="content-section">
-                 <div class="bg-white dark:bg-slate-900 p-8 rounded-lg shadow-md">
+                 <div class="bg-slate-900 p-8 rounded-lg">
                     <h2 class="text-3xl font-bold mb-2">Live Transformation Demo</h2>
                     <p class="mb-6 text-lg">This interactive demo simulates the Power Query editor. Click a transformation button to manipulate the table. Notice how the M Code below the table updates with each step, showing you exactly what Power Query writes behind the scenes.</p>
                     <div class="grid lg:grid-cols-5 gap-8">
                         <div class="lg:col-span-2">
                             <h3 class="text-xl font-semibold mb-3">Transformation Steps</h3>
                             <div id="transform-controls" class="flex flex-col space-y-2">
-                                <button id="reset-btn" class="w-full text-left p-3 bg-indigo-600 text-white rounded-md hover:bg-indigo-700 transition font-semibold">Reset Data</button>
-                                <button class="transform-btn interactive-card w-full text-left p-3 bg-slate-100 dark:bg-slate-800" data-transform="change-type">1. Change Data Type</button>
-                                <button class="transform-btn interactive-card w-full text-left p-3 bg-slate-100 dark:bg-slate-800" data-transform="split-column">2. Split Column</button>
-                                <button class="transform-btn interactive-card w-full text-left p-3 bg-slate-100 dark:bg-slate-800" data-transform="filter-rows">3. Filter Rows</button>
-                                <button class="transform-btn interactive-card w-full text-left p-3 bg-slate-100 dark:bg-slate-800" data-transform="add-column">4. Add Conditional Column</button>
-                                <button class="transform-btn interactive-card w-full text-left p-3 bg-slate-100 dark:bg-slate-800" data-transform="group-by">5. Group and Aggregate</button>
+                                <button id="reset-btn" class="w-full text-left p-3 bg-indigo-600 text-white rounded-md hover:bg-indigo-500 transition font-semibold">Reset Data</button>
+                                <button class="transform-btn interactive-card w-full text-left p-3 bg-slate-800" data-transform="change-type">1. Change Data Type</button>
+                                <button class="transform-btn interactive-card w-full text-left p-3 bg-slate-800" data-transform="split-column">2. Split Column</button>
+                                <button class="transform-btn interactive-card w-full text-left p-3 bg-slate-800" data-transform="filter-rows">3. Filter Rows</button>
+                                <button class="transform-btn interactive-card w-full text-left p-3 bg-slate-800" data-transform="add-column">4. Add Conditional Column</button>
+                                <button class="transform-btn interactive-card w-full text-left p-3 bg-slate-800" data-transform="group-by">5. Group and Aggregate</button>
                             </div>
                         </div>
                         <div class="lg:col-span-3">
                             <h3 id="table-title" class="text-xl font-semibold mb-3">Data Preview</h3>
-                            <div class="overflow-x-auto border border-slate-200 dark:border-slate-700 rounded-lg mb-4">
-                                <table id="demo-table" class="w-full text-sm text-left text-slate-600 dark:text-slate-400">
-                                    <thead id="demo-table-head" class="text-xs uppercase bg-slate-50 dark:bg-slate-800"></thead>
+                            <div class="overflow-x-auto border border-slate-700 rounded-lg mb-4">
+                                <table id="demo-table" class="w-full text-sm text-left text-slate-400">
+                                    <thead id="demo-table-head" class="text-xs uppercase bg-slate-800"></thead>
                                     <tbody id="demo-table-body"></tbody>
                                 </table>
                             </div>
@@ -263,27 +249,28 @@
             
             <!-- Intermediate Section -->
             <section id="intermediate" class="content-section">
-                <div class="bg-white dark:bg-slate-900 p-8 rounded-lg shadow-md mb-8">
+                <div class="bg-slate-900 p-8 rounded-lg mb-8">
                     <h2 class="text-3xl font-bold mb-2">Visualizing Merge Joins</h2>
                     <p class="mb-6 text-lg">Merging tables is a fundamental concept. Power Query offers several "Join Kinds" to control how tables are combined. Select a join type below to see a visual representation of how it works.</p>
                     <div id="join-controls" class="flex flex-wrap justify-center gap-2 mb-8">
-                        <button class="join-btn p-2 px-4 bg-indigo-100 dark:bg-indigo-900/50 text-indigo-800 dark:text-indigo-300 rounded-full text-sm font-semibold" data-join="inner">Inner</button>
-                        <button class="join-btn p-2 px-4 bg-indigo-100 dark:bg-indigo-900/50 text-indigo-800 dark:text-indigo-300 rounded-full text-sm font-semibold" data-join="left">Left Outer</button>
-                        <button class="join-btn p-2 px-4 bg-indigo-100 dark:bg-indigo-900/50 text-indigo-800 dark:text-indigo-300 rounded-full text-sm font-semibold" data-join="right">Right Outer</button>
-                        <button class="join-btn p-2 px-4 bg-indigo-100 dark:bg-indigo-900/50 text-indigo-800 dark:text-indigo-300 rounded-full text-sm font-semibold" data-join="full">Full Outer</button>
-                        <button class="join-btn p-2 px-4 bg-indigo-100 dark:bg-indigo-900/50 text-indigo-800 dark:text-indigo-300 rounded-full text-sm font-semibold" data-join="left-anti">Left Anti</button>
-                        <button class="join-btn p-2 px-4 bg-indigo-100 dark:bg-indigo-900/50 text-indigo-800 dark:text-indigo-300 rounded-full text-sm font-semibold" data-join="right-anti">Right Anti</button>
+                        <button class="join-btn p-2 px-4 bg-slate-800 text-indigo-300 rounded-full text-sm font-semibold" data-join="inner">Inner</button>
+                        <button class="join-btn p-2 px-4 bg-slate-800 text-indigo-300 rounded-full text-sm font-semibold" data-join="left">Left Outer</button>
+                        <button class="join-btn p-2 px-4 bg-slate-800 text-indigo-300 rounded-full text-sm font-semibold" data-join="right">Right Outer</button>
+                        <button class="join-btn p-2 px-4 bg-slate-800 text-indigo-300 rounded-full text-sm font-semibold" data-join="full">Full Outer</button>
+                        <button class="join-btn p-2 px-4 bg-slate-800 text-indigo-300 rounded-full text-sm font-semibold" data-join="left-anti">Left Anti</button>
+                        <button class="join-btn p-2 px-4 bg-slate-800 text-indigo-300 rounded-full text-sm font-semibold" data-join="right-anti">Right Anti</button>
                     </div>
-                    <div class="join-diagram relative h-48 flex justify-center items-center">
-                        <div class="table table-a overlap" style="left: calc(50% - 60px);">Table A</div>
-                        <div class="table table-b overlap" style="left: calc(50% - 20px);">Table B</div>
-                        <div id="join-result-left" class="result-area table table-a overlap opacity-0" style="left: calc(50% - 60px); background-color: #a5b4fc;"></div>
-                        <div id="join-result-right" class="result-area table table-b overlap opacity-0" style="left: calc(50% - 20px); background-color: #6ee7b7;"></div>
-                        <div id="join-result-center" class="result-area absolute w-10 h-20 bg-emerald-300 opacity-0" style="left: calc(50% - 20px); border-radius: 0 100% 100% 0 / 0 50% 50% 0;"></div>
+                    <div class="join-diagram">
+                        <div class="result-area result-left"></div>
+                        <div class="result-area result-right"></div>
+                        <div class="result-area result-center result-left"></div>
+                        <div class="result-area result-center result-right"></div>
+                        <div class="circle circle-a">Table A</div>
+                        <div class="circle circle-b">Table B</div>
                     </div>
-                    <p id="join-explanation" class="text-center mt-4 text-slate-600 dark:text-slate-400 font-medium h-10"></p>
+                    <p id="join-explanation" class="text-center mt-4 text-slate-400 font-medium h-10"></p>
                 </div>
-                <div class="bg-white dark:bg-slate-900 p-8 rounded-lg shadow-md mb-8">
+                <div class="bg-slate-900 p-8 rounded-lg mb-8">
                     <h2 class="text-3xl font-bold mb-2">Append vs. Merge</h2>
                     <p class="mb-6 text-lg">It's crucial to understand the difference between these two operations.</p>
                     <div class="grid md:grid-cols-2 gap-8 text-center">
@@ -297,7 +284,7 @@
                         </div>
                     </div>
                 </div>
-                 <div class="bg-white dark:bg-slate-900 p-8 rounded-lg shadow-md">
+                 <div class="bg-slate-900 p-8 rounded-lg">
                     <h2 class="text-3xl font-bold mb-2">Data Profiling Tools</h2>
                     <p class="mb-6 text-lg">Before you transform, you must understand your data. Power Query provides powerful profiling tools to quickly assess data quality, distribution, and patterns right in the editor.</p>
                      <ul class="list-disc list-inside space-y-3 text-lg">
@@ -310,7 +297,7 @@
 
             <!-- Advanced Section -->
             <section id="advanced" class="content-section">
-                 <div class="bg-white dark:bg-slate-900 p-8 rounded-lg shadow-md">
+                 <div class="bg-slate-900 p-8 rounded-lg">
                     <h2 class="text-3xl font-bold mb-2">Advanced & M Language</h2>
                     <p class="mb-6 text-lg">Dive deeper into the Power Query M language to unlock custom logic, create reusable functions, and optimize performance for massive datasets.</p>
                     <div class="space-y-6">
@@ -352,7 +339,7 @@ in
 
             <!-- Use Cases Section -->
             <section id="use-cases" class="content-section">
-                <div class="bg-white dark:bg-slate-900 p-8 rounded-lg shadow-md">
+                <div class="bg-slate-900 p-8 rounded-lg">
                     <h2 class="text-3xl font-bold mb-2">Practical Use Cases</h2>
                     <p class="mb-6 text-lg">Let's apply these concepts to real-world scenarios to see the power of an automated workflow.</p>
                     <div class="grid md:grid-cols-2 gap-8">
@@ -374,15 +361,20 @@ in
                     <div class="interactive-card p-6 rounded-lg mt-8">
                         <h3 class="font-semibold text-xl mb-2">3. Data Automation Workflow</h3>
                         <p class="mb-4">Here is a visual representation of a typical Power Query automation process using a Mermaid flowchart.</p>
-                        <pre class="mermaid bg-slate-100 dark:bg-slate-800 p-4 rounded-lg text-center">
+                        <pre class="mermaid bg-slate-800 p-4 rounded-lg text-center">
 graph TD
-    A[Source: Folder of CSVs] --> B{Power Query};
+    A[Source: Folder of CSVs] --> B{Power Query Engine};
     C[Source: Excel Lookup Table] --> B;
-    B --> D[Step 1: Combine Files];
-    D --> E[Step 2: Clean & Transform Data];
-    E --> F[Step 3: Merge with Lookup];
-    F --> G[Step 4: Group & Aggregate];
+    B --> D[1. Combine Files];
+    D --> E[2. Clean & Transform Data];
+    E --> F[3. Merge with Lookup];
+    F --> G[4. Group & Aggregate];
     G --> H[Load to: Power BI Dashboard];
+
+    style A fill:#0f172a,stroke:#6366f1,stroke-width:2px
+    style C fill:#0f172a,stroke:#6366f1,stroke-width:2px
+    style H fill:#166534,stroke:#4ade80,stroke-width:2px
+    style B fill:#5b21b6,stroke:#a78bfa,stroke-width:2px
                         </pre>
                     </div>
                 </div>
@@ -390,7 +382,7 @@ graph TD
 
             <!-- Best Practices Section -->
             <section id="best-practices" class="content-section">
-                <div class="bg-white dark:bg-slate-900 p-8 rounded-lg shadow-md mb-8">
+                <div class="bg-slate-900 p-8 rounded-lg mb-8">
                     <h2 class="text-3xl font-bold mb-2">Best Practices & Optimization</h2>
                      <div class="grid md:grid-cols-2 gap-8">
                         <div>
@@ -415,12 +407,12 @@ graph TD
                         </div>
                     </div>
                 </div>
-                <div class="bg-white dark:bg-slate-900 p-8 rounded-lg shadow-md">
+                <div class="bg-slate-900 p-8 rounded-lg">
                     <h2 class="text-3xl font-bold mb-2">Official Resources</h2>
                     <ul class="list-disc list-inside space-y-2">
-                        <li><a href="https://docs.microsoft.com/en-us/power-query/" target="_blank" class="text-indigo-600 dark:text-indigo-400 hover:underline">Microsoft Power Query Docs</a></li>
-                        <li><a href="https://docs.microsoft.com/en-us/powerquery-m/power-query-m-function-reference" target="_blank" class="text-indigo-600 dark:text-indigo-400 hover:underline">Power Query M Language Reference</a></li>
-                        <li><a href="https://community.powerbi.com/" target="_blank" class="text-indigo-600 dark:text-indigo-400 hover:underline">Power BI Community Forum</a></li>
+                        <li><a href="https://docs.microsoft.com/en-us/power-query/" target="_blank" class="text-indigo-400 hover:underline">Microsoft Power Query Docs</a></li>
+                        <li><a href="https://docs.microsoft.com/en-us/powerquery-m/power-query-m-function-reference" target="_blank" class="text-indigo-400 hover:underline">Power Query M Language Reference</a></li>
+                        <li><a href="https://community.powerbi.com/" target="_blank" class="text-indigo-400 hover:underline">Power BI Community Forum</a></li>
                     </ul>
                 </div>
             </section>
@@ -436,14 +428,6 @@ graph TD
         const contentSections = document.querySelectorAll('.content-section');
         const mainTitle = document.getElementById('main-title');
         const mainSubtitle = document.getElementById('main-subtitle');
-        const themeToggle = document.getElementById('theme-toggle');
-        const lightIcon = document.getElementById('theme-icon-light');
-        const darkIcon = document.getElementById('theme-icon-dark');
-
-        // Store original mermaid definitions to re-render on theme change
-        document.querySelectorAll('.mermaid').forEach(el => {
-            el.dataset.originalCode = el.innerHTML.trim();
-        });
 
         const sectionTitles = {
             'intro': 'Introduction to Power Query',
@@ -455,42 +439,6 @@ graph TD
             'best-practices': 'Best Practices & Resources'
         };
 
-        // --- Theme Management ---
-        const applyTheme = (theme) => {
-            if (theme === 'dark') {
-                document.documentElement.classList.add('dark');
-                lightIcon.classList.add('hidden');
-                darkIcon.classList.remove('hidden');
-            } else {
-                document.documentElement.classList.remove('dark');
-                lightIcon.classList.remove('hidden');
-                darkIcon.classList.add('hidden');
-            }
-            
-            if (window.mermaid) {
-                window.mermaid.initialize({
-                    startOnLoad: false,
-                    theme: theme === 'dark' ? 'dark' : 'default',
-                    fontFamily: 'Inter, sans-serif',
-                });
-                // Force re-render of mermaid charts
-                document.querySelectorAll('.mermaid').forEach((elem) => {
-                    elem.innerHTML = elem.dataset.originalCode;
-                    elem.removeAttribute('data-processed');
-                });
-                window.mermaid.run();
-            }
-        };
-        
-        themeToggle.addEventListener('click', () => {
-            const newTheme = document.documentElement.classList.contains('dark') ? 'light' : 'dark';
-            localStorage.setItem('theme', newTheme);
-            applyTheme(newTheme);
-        });
-        
-        // Initialize theme on load
-        applyTheme(localStorage.getItem('theme') || 'light');
-
         // --- Navigation ---
         menuToggle.addEventListener('click', () => {
             sidebar.classList.toggle('-translate-x-full');
@@ -501,27 +449,22 @@ graph TD
             const targetSection = document.querySelector(hash);
             if (!targetSection) return;
 
-            // Update main navigation
             mainNav.querySelectorAll('.nav-link').forEach(link => {
                 link.classList.toggle('active', link.getAttribute('href') === hash);
             });
 
-            // Update content sections
             contentSections.forEach(section => {
                 section.classList.toggle('active', `#${section.id}` === hash);
             });
 
-            // Update main header
             mainTitle.textContent = sectionTitles[hash.substring(1)];
             const activeNavLink = mainNav.querySelector(`.nav-link[href="${hash}"]`);
             if(activeNavLink) mainSubtitle.textContent = activeNavLink.textContent;
             
-            // Hide sidebar on mobile after navigation
             if (window.innerWidth < 768) {
                 sidebar.classList.add('-translate-x-full');
             }
             
-            // Activate the first sub-nav link in the new section
             const firstSubNavLink = targetSection.querySelector('.sub-nav-link');
             if (firstSubNavLink) {
                 switchSubContent(firstSubNavLink);
@@ -541,7 +484,6 @@ graph TD
             if(subTarget) subTarget.classList.add('active');
         }
 
-        // Event Delegation for Navigation
         document.body.addEventListener('click', (e) => {
             const navLink = e.target.closest('.nav-link');
             const subNavLink = e.target.closest('.sub-nav-link');
@@ -559,7 +501,7 @@ graph TD
         });
         
         window.addEventListener('popstate', () => switchContent(window.location.hash));
-        switchContent(window.location.hash);
+        switchContent(window.location.hash || '#intro');
 
         // --- Interactive Demos ---
 
@@ -588,7 +530,7 @@ graph TD
             tableHeadEl.innerHTML = headerRow;
 
             const bodyRows = data.map(row => 
-                `<tr class="border-b dark:border-slate-700 last:border-b-0">${headers.map(h => `<td class="p-3">${row[h]}</td>`).join('')}</tr>`
+                `<tr class="border-b border-slate-700 last:border-b-0">${headers.map(h => `<td class="p-3">${row[h]}</td>`).join('')}</tr>`
             ).join('');
             tableBodyEl.innerHTML = bodyRows;
         }
@@ -606,7 +548,7 @@ graph TD
 
         transformControls.addEventListener('click', (e) => {
             const button = e.target.closest('.transform-btn, #reset-btn');
-            if (!button) return;
+            if (!button || button.disabled) return;
 
             if (button.id === 'reset-btn') {
                 resetDemo();
@@ -625,11 +567,10 @@ graph TD
                     break;
                 case 'split-column':
                     title = "Split 'ProductID' by Delimiter";
-                    currentData = currentData.map(row => {
-                        const parts = row.ProductID.split('-');
-                        return { 'ProductID.1': parts[0], 'ProductID.2': parts[1], ...row };
+                    currentData = currentData.map(({ ProductID, ...rest }) => {
+                        const parts = ProductID.split('-');
+                        return { 'ProductID.1': parts[0], 'ProductID.2': parts[1], ...rest };
                     });
-                    delete currentData[0].ProductID; // a bit hacky for demo
                     mCode = `<span class="function">Table.SplitColumn</span>(PreviousStep, <span class="string">"ProductID"</span>, <span class="function">Splitter.SplitTextByDelimiter</span>(<span class="string">"-"</span>))`;
                     break;
                 case 'filter-rows':
@@ -662,9 +603,10 @@ graph TD
         // Intermediate: Join Diagram Logic
         const joinControls = document.getElementById('join-controls');
         const joinExplanation = document.getElementById('join-explanation');
-        const resultLeft = document.getElementById('join-result-left');
-        const resultCenter = document.getElementById('join-result-center');
-        const resultRight = document.getElementById('join-result-right');
+        const resultLeft = document.querySelector('.result-left');
+        const resultRight = document.querySelector('.result-right');
+        const resultCenter = document.querySelectorAll('.result-center');
+
         const joinExplanations = {
             'inner': 'Returns only the matching rows from both tables.',
             'left': 'Returns all rows from Table A and matching rows from Table B.',
@@ -681,9 +623,16 @@ graph TD
             const joinType = button.dataset.join;
             joinExplanation.textContent = joinExplanations[joinType];
             
-            resultLeft.style.opacity = ['left', 'full', 'left-anti'].includes(joinType) ? '0.5' : '0';
-            resultCenter.style.opacity = ['inner', 'left', 'right', 'full'].includes(joinType) ? '0.5' : '0';
-            resultRight.style.opacity = ['right', 'full', 'right-anti'].includes(joinType) ? '0.5' : '0';
+            // Reset all opacities
+            resultLeft.style.opacity = '0';
+            resultRight.style.opacity = '0';
+            resultCenter.forEach(el => el.style.opacity = '0');
+
+            // Set opacities based on join type
+            if (['left', 'full', 'left-anti'].includes(joinType)) resultLeft.style.opacity = '1';
+            if (['right', 'full', 'right-anti'].includes(joinType)) resultRight.style.opacity = '1';
+            if (['inner', 'left', 'right', 'full'].includes(joinType)) resultCenter.forEach(el => el.style.opacity = '1');
+            
         });
 
         // Initialize demos
@@ -691,6 +640,9 @@ graph TD
         joinControls.querySelector('.join-btn[data-join="inner"]').click();
 
         // Use Cases: Chart.js instances
+        Chart.defaults.color = '#a1a1aa';
+        Chart.defaults.borderColor = '#27272a';
+
         new Chart(document.getElementById('sales-report-chart'), {
             type: 'bar',
             data: {
@@ -698,11 +650,11 @@ graph TD
                 datasets: [{
                     label: 'Total Sales',
                     data: [12000, 9500, 15000, 6000],
-                    backgroundColor: '#4f46e5',
+                    backgroundColor: '#6366f1',
                     borderRadius: 4,
                 }]
             },
-            options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } } }
+            options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { y: { grid: { color: '#27272a' } }, x: { grid: { color: '#27272a' } } } }
         });
 
         new Chart(document.getElementById('survey-chart'), {
@@ -712,10 +664,10 @@ graph TD
                 datasets: [{
                     data: [450, 800, 300, 150],
                     backgroundColor: ['#10b981', '#34d399', '#6ee7b7', '#a7f3d0'],
-                    borderColor: '#ffffff',
+                    borderColor: '#000000',
                 }]
             },
-            options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'right' } } }
+            options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'right', labels: { color: '#a1a1aa' } } } }
         });
     });
     </script>
