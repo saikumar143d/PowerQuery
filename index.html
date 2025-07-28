@@ -16,10 +16,11 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <!-- 
         Enhancement Plan:
-        1. Theme: Converted to a permanent, AMOLED-friendly dark theme. Removed all theme-switching logic and the toggle button.
-        2. Colors: Changed background to true black (#000000) and secondary elements to a dark gray for depth and OLED efficiency. Adjusted text and accent colors for high contrast.
-        3. Mermaid Fix: Corrected the display issue by simplifying initialization and ensuring it runs correctly on load. Added direct styling within the mermaid definition for better visibility.
-        4. Join Visualization: Overhauled the join diagram. It now uses distinct, vibrant colors for each part of the Venn diagram (left, right, center) for much clearer identification of what each join type returns. The JS logic was updated to control these new colored areas precisely.
+        1. Rich Text: Reviewed and enhanced all descriptive text across the page for better engagement and clarity, using more evocative language and emphasis.
+        2. Dynamic Clock: Added a new date and time widget to the bottom-left of the sidebar.
+        3. Clock Styling: Styled the widget in a modern "tab" format, fixed to the bottom of the sidebar.
+        4. Dynamic Colors: Implemented JavaScript logic for the clock widget's background color to cycle through a predefined palette every 10 minutes.
+        5. Real-time Updates: The clock updates every second to show the current time.
     -->
     <style>
         :root {
@@ -50,7 +51,7 @@
         .code-block .string { color: #facc15; }
         .code-block .keyword { color: #f472b6; }
         .chart-container { position: relative; width: 100%; max-width: 550px; margin-left: auto; margin-right: auto; height: 320px; max-height: 350px; }
-        .interactive-card { transition: transform 0.2s, box-shadow 0.2s; background-color: var(--bg-secondary); border: 1px solid var(--border-color); }
+        .interactive-card { transition: transform 0.2s, box-shadow 0.2s, border-color 0.2s; background-color: var(--bg-secondary); border: 1px solid var(--border-color); }
         .interactive-card:hover { transform: translateY(-4px); box-shadow: 0 8px 25px -3px rgb(255 255 255 / 0.05); border-color: #3f3f46; }
         
         /* Join Diagram Styles */
@@ -64,6 +65,9 @@
         .join-diagram .result-center { background-color: #c026d3; /* Vibrant magenta for intersection */ }
 
         .transform-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+        
+        #datetime-widget { transition: background-color 0.5s ease-in-out; }
+
         @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
     </style>
 </head>
@@ -71,21 +75,29 @@
 
     <div class="flex min-h-screen">
         <!-- Sidebar Navigation -->
-        <aside id="sidebar" class="w-64 bg-black p-6 border-r border-slate-800 fixed h-full transform -translate-x-full md:translate-x-0 transition-transform duration-300 ease-in-out z-30">
-            <div class="flex justify-between items-center mb-8">
-                <h2 class="text-2xl font-bold text-white">Power Query</h2>
+        <aside id="sidebar" class="w-64 bg-black p-6 border-r border-slate-800 fixed h-full transform -translate-x-full md:translate-x-0 transition-transform duration-300 ease-in-out z-30 flex flex-col">
+            <div>
+                <div class="flex justify-between items-center mb-8">
+                    <h2 class="text-2xl font-bold text-white">Power Query</h2>
+                </div>
+                <nav id="main-nav">
+                    <ul class="space-y-2">
+                        <li><a href="#intro" class="nav-link active flex items-center p-3 rounded-lg font-medium">Introduction</a></li>
+                        <li><a href="#connectors" class="nav-link flex items-center p-3 rounded-lg font-medium">Data Connectors</a></li>
+                        <li><a href="#getting-started" class="nav-link flex items-center p-3 rounded-lg font-medium">Basic Transformations</a></li>
+                        <li><a href="#intermediate" class="nav-link flex items-center p-3 rounded-lg font-medium">Intermediate Concepts</a></li>
+                        <li><a href="#advanced" class="nav-link flex items-center p-3 rounded-lg font-medium">Advanced & M Language</a></li>
+                        <li><a href="#use-cases" class="nav-link flex items-center p-3 rounded-lg font-medium">Practical Use Cases</a></li>
+                        <li><a href="#best-practices" class="nav-link flex items-center p-3 rounded-lg font-medium">Best Practices</a></li>
+                    </ul>
+                </nav>
             </div>
-            <nav id="main-nav">
-                <ul class="space-y-2">
-                    <li><a href="#intro" class="nav-link active flex items-center p-3 rounded-lg font-medium">Introduction</a></li>
-                    <li><a href="#connectors" class="nav-link flex items-center p-3 rounded-lg font-medium">Data Connectors</a></li>
-                    <li><a href="#getting-started" class="nav-link flex items-center p-3 rounded-lg font-medium">Basic Transformations</a></li>
-                    <li><a href="#intermediate" class="nav-link flex items-center p-3 rounded-lg font-medium">Intermediate Concepts</a></li>
-                    <li><a href="#advanced" class="nav-link flex items-center p-3 rounded-lg font-medium">Advanced & M Language</a></li>
-                    <li><a href="#use-cases" class="nav-link flex items-center p-3 rounded-lg font-medium">Practical Use Cases</a></li>
-                    <li><a href="#best-practices" class="nav-link flex items-center p-3 rounded-lg font-medium">Best Practices</a></li>
-                </ul>
-            </nav>
+            <div class="mt-auto">
+                 <div id="datetime-widget" class="p-3 rounded-lg text-center text-white font-medium">
+                    <div id="time" class="text-lg"></div>
+                    <div id="date" class="text-xs opacity-75"></div>
+                </div>
+            </div>
         </aside>
 
         <!-- Mobile Header -->
@@ -118,26 +130,26 @@
                 <div id="intro-what" class="sub-content active">
                     <div class="bg-slate-900 p-8 rounded-lg">
                         <h2 class="text-3xl font-bold mb-4">What is Power Query?</h2>
-                        <p class="mb-6 text-lg leading-relaxed"><strong>Power Query</strong> is a data transformation and data preparation engine. It provides a graphical user interface for getting data from sources and a Power Query Editor for applying transformations. Because the engine is available in many products and services, the data preparation experience, and the queries you create, are portable across them.</p>
-                        <p class="text-lg leading-relaxed">Think of it as your personal data assistant, automating the tedious 80% of work that is data preparation, so you can focus on the valuable 20% that is analysis and insight. It records your steps and lets you repeat them on-demand with a single click.</p>
+                        <p class="mb-6 text-lg leading-relaxed"><strong>Power Query</strong> is a world-class data transformation and data preparation engine. It provides an intuitive graphical interface for discovering, connecting to, and shaping data from a vast array of sources. The transformations you build are recorded as repeatable steps, forming a query that can be refreshed on demand.</p>
+                        <p class="text-lg leading-relaxed">Think of it as your <em>personal data butler</em>, automating the tedious 80% of work that is data wrangling, so you can focus on the valuable 20% that is <strong>analysis and insight</strong>. It's the key to unlocking consistent, reliable, and automated data workflows.</p>
                     </div>
                 </div>
                 <div id="intro-etl" class="sub-content">
                     <div class="bg-slate-900 p-8 rounded-lg">
-                        <h2 class="text-3xl font-bold mb-4">The ETL Process Explained</h2>
-                        <p class="mb-6 text-lg leading-relaxed">Power Query is a classic <strong>ETL</strong> tool. ETL stands for Extract, Transform, and Load, which is the core process of data integration.</p>
+                        <h2 class="text-3xl font-bold mb-4">The ETL Process, Demystified</h2>
+                        <p class="mb-6 text-lg leading-relaxed">Power Query is a quintessential <strong>ETL</strong> tool. ETL stands for <em>Extract, Transform, and Load</em>—the fundamental process of modern data integration.</p>
                         <ul class="space-y-4 text-lg">
                             <li class="flex items-start">
                                 <span class="text-2xl font-bold text-indigo-400 mr-4">E</span>
-                                <div><strong>Extract:</strong> The first step is to connect to and retrieve data from its original source. This could be a simple Excel file, a complex SQL database, a web page, or hundreds of other sources.</div>
+                                <div><strong>Extract:</strong> This is the initial step of connecting to and retrieving data from its native source. Whether it's a simple Excel file, a sprawling SQL database, a dynamic web page, or hundreds of other sources, Power Query establishes the connection and pulls in the raw data.</div>
                             </li>
                             <li class="flex items-start">
                                 <span class="text-2xl font-bold text-emerald-400 mr-4">T</span>
-                                <div><strong>Transform:</strong> This is the heart of Power Query. After extracting the data, you clean, shape, and enrich it. This includes removing errors, changing data types, splitting columns, merging tables, and applying business logic to make the data usable for analysis.</div>
+                                <div><strong>Transform:</strong> This is where the magic happens—the very heart of Power Query's power. After extraction, you clean, shape, and enrich the data. This involves removing errors, changing data types, splitting columns, merging tables, and applying critical business logic to sculpt the data into a perfectly usable format for analysis.</div>
                             </li>
                             <li class="flex items-start">
                                 <span class="text-2xl font-bold text-rose-400 mr-4">L</span>
-                                <div><strong>Load:</strong> Once the data is perfectly transformed, you load it to a destination. This could be a worksheet in Excel, the data model in Power BI, or another destination where it can be analyzed and visualized.</div>
+                                <div><strong>Load:</strong> Once your data is pristine and perfectly transformed, you load it to a final destination. This could be a worksheet in Excel, the advanced Data Model in Power BI, or another target where it can be analyzed, visualized, and turned into actionable intelligence.</div>
                             </li>
                         </ul>
                     </div>
@@ -145,19 +157,19 @@
                 <div id="intro-why" class="sub-content">
                      <div class="bg-slate-900 p-8 rounded-lg">
                          <h3 class="text-3xl font-bold mb-4">Why is Power Query a Game-Changer?</h3>
-                         <ul class="list-disc list-inside space-y-3 text-lg">
-                             <li><strong>Automates Repetitive Work:</strong> Record a set of cleaning steps once. When new data arrives, just click "Refresh" to repeat the entire process flawlessly in seconds.</li>
-                             <li><strong>Democratizes Data Preparation:</strong> Empowers business users, analysts, and citizen developers to perform complex data transformations that previously required IT or database specialists.</li>
-                             <li><strong>Ensures Consistency and Accuracy:</strong> By creating a repeatable process, you eliminate manual errors and ensure that business rules are applied consistently every time.</li>
-                             <li><strong>Handles Diverse & Messy Data:</strong> Seamlessly connect to hundreds of data sources and apply over 300 transformations to handle any data cleaning challenge you can imagine.</li>
-                             <li><strong>Non-Destructive:</strong> Power Query never changes your original source data. It works on a preview and applies the steps, ensuring your source remains intact and safe.</li>
+                         <ul class="list-disc list-inside space-y-4 text-lg">
+                             <li><strong>Radical Automation:</strong> Record a complex set of cleaning steps just once. When new data arrives, simply click "Refresh" to execute the entire process flawlessly in seconds, <em>saving countless hours of manual work</em>.</li>
+                             <li><strong>Democratization of Data:</strong> Empowers business users, analysts, and citizen developers to perform sophisticated data transformations that previously required dedicated IT or database specialists. <em>You are in control.</em></li>
+                             <li><strong>Unyielding Consistency and Accuracy:</strong> By creating a repeatable, automated process, you eliminate the risk of manual errors and ensure that critical business rules are applied consistently, every single time.</li>
+                             <li><strong>Master of Messy Data:</strong> Seamlessly connect to hundreds of data sources and apply over 300 built-in transformations to conquer any data cleaning challenge you can imagine, from strange formats to missing values.</li>
+                             <li><strong>Completely Non-Destructive:</strong> Power Query <em>never</em> alters your original source data. It operates on a preview and applies a list of steps, guaranteeing your source remains untouched, safe, and secure.</li>
                          </ul>
                      </div>
                 </div>
                 <div id="intro-where" class="sub-content">
                     <div class="bg-slate-900 p-8 rounded-lg">
-                        <h3 class="text-3xl font-bold mb-4">Where is Power Query Used?</h3>
-                        <p class="mb-6 text-lg">Power Query is the standard data preparation tool across the Microsoft ecosystem, ensuring a consistent experience wherever you work:</p>
+                        <h3 class="text-3xl font-bold mb-4">Where Does Power Query Live?</h3>
+                        <p class="mb-6 text-lg">Power Query is the unified data preparation tool across the entire Microsoft Power Platform and beyond, ensuring a consistent, powerful experience wherever you work with data:</p>
                         <div class="grid grid-cols-2 md:grid-cols-3 gap-4 text-center">
                             <div class="bg-slate-800 p-4 rounded-lg font-medium">Microsoft Excel</div>
                             <div class="bg-slate-800 p-4 rounded-lg font-medium">Power BI Desktop</div>
@@ -173,12 +185,12 @@
             <!-- Data Connectors Section -->
             <section id="connectors" class="content-section">
                  <div class="bg-slate-900 p-8 rounded-lg">
-                    <h2 class="text-3xl font-bold mb-2">Connecting to Data</h2>
-                    <p class="mb-6 text-lg">Power Query's strength begins with its vast array of connectors, allowing you to pull data from virtually anywhere.</p>
+                    <h2 class="text-3xl font-bold mb-2">Connecting to Your Data Universe</h2>
+                    <p class="mb-6 text-lg">Power Query's true strength begins with its vast and ever-growing library of connectors, allowing you to pull data from virtually anywhere and everywhere.</p>
                     <div class="space-y-6">
                         <div>
                             <h3 class="text-xl font-semibold mb-3">File Sources</h3>
-                            <p class="mb-4">Connect to local files or files in network shares and SharePoint. The "From Folder" connector is especially powerful, allowing you to combine hundreds of files at once.</p>
+                            <p class="mb-4">Effortlessly connect to local files, network shares, and SharePoint sites. The <strong>"From Folder"</strong> connector is exceptionally powerful, enabling you to combine and process hundreds of similar files in a single, automated step.</p>
                             <div class="flex flex-wrap gap-4">
                                 <span class="bg-blue-900 text-blue-300 text-sm font-medium me-2 px-2.5 py-0.5 rounded">Excel Workbook</span>
                                 <span class="bg-gray-700 text-gray-300 text-sm font-medium me-2 px-2.5 py-0.5 rounded">Text/CSV</span>
@@ -189,7 +201,7 @@
                         </div>
                         <div>
                             <h3 class="text-xl font-semibold mb-3">Database Sources</h3>
-                            <p class="mb-4">Pull data directly from enterprise-level databases. For many of these, Power Query can use Query Folding to push transformations back to the source, dramatically improving performance.</p>
+                            <p class="mb-4">Pull data directly from enterprise-grade relational databases. For many of these sources, Power Query can leverage <em>Query Folding</em> to push transformation logic back to the source server, dramatically accelerating performance.</p>
                              <div class="flex flex-wrap gap-4">
                                 <span class="bg-purple-900 text-purple-300 text-sm font-medium me-2 px-2.5 py-0.5 rounded">SQL Server</span>
                                 <span class="bg-indigo-900 text-indigo-300 text-sm font-medium me-2 px-2.5 py-0.5 rounded">Oracle</span>
@@ -200,7 +212,7 @@
                         </div>
                         <div>
                             <h3 class="text-xl font-semibold mb-3">Online & Cloud Sources</h3>
-                            <p class="mb-4">Connect to data from web pages, APIs, and a huge range of cloud services and platforms.</p>
+                            <p class="mb-4">Connect to the modern data landscape. Scrape data from web pages, consume APIs, and integrate with a huge range of cloud services and SaaS platforms.</p>
                              <div class="flex flex-wrap gap-4">
                                 <span class="bg-rose-900 text-rose-300 text-sm font-medium me-2 px-2.5 py-0.5 rounded">Web</span>
                                 <span class="bg-teal-900 text-teal-300 text-sm font-medium me-2 px-2.5 py-0.5 rounded">SharePoint List</span>
@@ -251,7 +263,7 @@
             <section id="intermediate" class="content-section">
                 <div class="bg-slate-900 p-8 rounded-lg mb-8">
                     <h2 class="text-3xl font-bold mb-2">Visualizing Merge Joins</h2>
-                    <p class="mb-6 text-lg">Merging tables is a fundamental concept. Power Query offers several "Join Kinds" to control how tables are combined. Select a join type below to see a visual representation of how it works.</p>
+                    <p class="mb-6 text-lg">Merging is a fundamental concept for enriching your data. Power Query offers several "Join Kinds" to control exactly how tables are combined. Select a join type below to see a visual representation of the result.</p>
                     <div id="join-controls" class="flex flex-wrap justify-center gap-2 mb-8">
                         <button class="join-btn p-2 px-4 bg-slate-800 text-indigo-300 rounded-full text-sm font-semibold" data-join="inner">Inner</button>
                         <button class="join-btn p-2 px-4 bg-slate-800 text-indigo-300 rounded-full text-sm font-semibold" data-join="left">Left Outer</button>
@@ -271,26 +283,26 @@
                     <p id="join-explanation" class="text-center mt-4 text-slate-400 font-medium h-10"></p>
                 </div>
                 <div class="bg-slate-900 p-8 rounded-lg mb-8">
-                    <h2 class="text-3xl font-bold mb-2">Append vs. Merge</h2>
-                    <p class="mb-6 text-lg">It's crucial to understand the difference between these two operations.</p>
+                    <h2 class="text-3xl font-bold mb-2">Append vs. Merge: A Critical Distinction</h2>
+                    <p class="mb-6 text-lg">It's crucial to understand the difference between these two core operations. Choosing the wrong one can lead to unexpected results.</p>
                     <div class="grid md:grid-cols-2 gap-8 text-center">
                         <div>
-                            <h3 class="text-xl font-semibold">Append Queries</h3>
-                            <p>Stacks rows from one table on top of another (like copying and pasting). The tables should have similar column structures.</p>
+                            <h3 class="text-xl font-semibold">Append Queries (Adding Rows)</h3>
+                            <p>Think of this as <strong>stacking tables</strong> on top of each other. Append adds the rows from one table to the end of another. For this to work well, the tables should have similar column structures and names.</p>
                         </div>
                         <div>
-                            <h3 class="text-xl font-semibold">Merge Queries</h3>
-                            <p>Adds new columns to a table by joining it with another table based on a matching key column (like VLOOKUP on steroids).</p>
+                            <h3 class="text-xl font-semibold">Merge Queries (Adding Columns)</h3>
+                            <p>Think of this as a <strong>VLOOKUP on steroids</strong>. Merge enriches a table by adding new columns from a second table, based on a matching key column that exists in both.</p>
                         </div>
                     </div>
                 </div>
                  <div class="bg-slate-900 p-8 rounded-lg">
-                    <h2 class="text-3xl font-bold mb-2">Data Profiling Tools</h2>
-                    <p class="mb-6 text-lg">Before you transform, you must understand your data. Power Query provides powerful profiling tools to quickly assess data quality, distribution, and patterns right in the editor.</p>
+                    <h2 class="text-3xl font-bold mb-2">Data Profiling: Your First Line of Defense</h2>
+                    <p class="mb-6 text-lg">Before you transform, you must understand your data's health. Power Query provides powerful, built-in profiling tools to quickly assess data quality, distribution, and patterns right inside the editor.</p>
                      <ul class="list-disc list-inside space-y-3 text-lg">
-                        <li><strong>Column Quality:</strong> Shows percentages of Valid, Error, and Empty values in a column. Instantly tells you where the problems are.</li>
-                        <li><strong>Column Distribution:</strong> Provides a histogram-like view of how your data is distributed, helping you spot outliers.</li>
-                        <li><strong>Column Profile:</strong> Gives detailed statistics for a column, such as count, distinct values, min, max, and average.</li>
+                        <li><strong>Column Quality:</strong> Instantly see percentages of <em>Valid</em>, <em>Error</em>, and <em>Empty</em> values in a column. This immediately tells you where the problems are hiding.</li>
+                        <li><strong>Column Distribution:</strong> Get a histogram-like view of how your data is distributed. This is invaluable for spotting outliers and understanding the shape of your data.</li>
+                        <li><strong>Column Profile:</strong> Dive deep into detailed statistics for any column, including value counts, distinct counts, min/max, average, and more.</li>
                     </ul>
                 </div>
             </section>
@@ -298,12 +310,12 @@
             <!-- Advanced Section -->
             <section id="advanced" class="content-section">
                  <div class="bg-slate-900 p-8 rounded-lg">
-                    <h2 class="text-3xl font-bold mb-2">Advanced & M Language</h2>
-                    <p class="mb-6 text-lg">Dive deeper into the Power Query M language to unlock custom logic, create reusable functions, and optimize performance for massive datasets.</p>
+                    <h2 class="text-3xl font-bold mb-2">Advanced Techniques & The M Language</h2>
+                    <p class="mb-6 text-lg">Go beyond the UI and dive into the Power Query M formula language to unlock custom logic, create reusable functions, and optimize performance for massive datasets.</p>
                     <div class="space-y-6">
                         <div class="interactive-card p-6 rounded-lg">
                             <h3 class="font-semibold text-xl mb-2">Creating Custom Functions</h3>
-                            <p class="mb-4">Encapsulate repeatable logic into your own functions. This example creates a function to standardize text by trimming whitespace and converting it to proper case, while safely handling null values.</p>
+                            <p class="mb-4">Encapsulate repeatable logic into your own portable functions. This example creates a function to safely standardize text by trimming whitespace and converting it to proper case, correctly handling null values.</p>
                             <div class="code-block">
 <pre><code>(<span class="keyword">inputText</span> as nullable text) as nullable text =>
 let
@@ -316,8 +328,8 @@ in
                             </div>
                         </div>
                          <div class="interactive-card p-6 rounded-lg">
-                            <h3 class="font-semibold text-xl mb-2">Error Handling with Try...Otherwise</h3>
-                            <p class="mb-4">Gracefully handle potential errors in your transformations. For example, if a text-to-number conversion fails, you can return a default value like 0 or null instead of letting the entire query fail.</p>
+                            <h3 class="font-semibold text-xl mb-2">Bulletproof Error Handling with Try...Otherwise</h3>
+                            <p class="mb-4">Gracefully manage potential errors in your transformations. For instance, if a text-to-number conversion fails, you can return a default value like 0 or null instead of allowing the entire query to fail catastrophically.</p>
                             <div class="code-block">
 <pre><code>let
     Source = <span class="function">Table.FromRows</span>({{"123"}, {"abc"}, {"456"}}),
@@ -329,9 +341,9 @@ in
                             </div>
                         </div>
                         <div class="interactive-card p-6 rounded-lg">
-                            <h3 class="font-semibold text-xl mb-2">Performance & Query Folding</h3>
-                            <p class="mb-2"><strong>Query Folding</strong> is the secret to high performance. It's the process of translating your transformation steps (like filtering) into the native language of your data source (e.g., SQL). This means the source database does the heavy lifting before sending the data to you.</p>
-                            <p><strong>Tip:</strong> Steps like filtering, sorting, removing columns, and simple math at the beginning of your query are likely to fold. Custom M code, using `Table.Buffer`, or complex transformations often stop folding.</p>
+                            <h3 class="font-semibold text-xl mb-2">Performance Tuning & Query Folding</h3>
+                            <p class="mb-2"><strong>Query Folding</strong> is the secret to blazing-fast performance. It's the process of translating your transformation steps (like filtering) into the native language of your data source (e.g., SQL). This forces the source database to do the heavy lifting <em>before</em> sending a smaller, pre-processed dataset to you.</p>
+                            <p><strong>Pro Tip:</strong> Steps like filtering, sorting, and removing columns at the beginning of your query are very likely to fold. Complex transformations or custom M code often stop folding. Right-click a step and see if "View Native Query" is enabled to check!</p>
                         </div>
                     </div>
                 </div>
@@ -428,6 +440,9 @@ graph TD
         const contentSections = document.querySelectorAll('.content-section');
         const mainTitle = document.getElementById('main-title');
         const mainSubtitle = document.getElementById('main-subtitle');
+        const timeEl = document.getElementById('time');
+        const dateEl = document.getElementById('date');
+        const dateTimeWidget = document.getElementById('datetime-widget');
 
         const sectionTitles = {
             'intro': 'Introduction to Power Query',
@@ -439,6 +454,29 @@ graph TD
             'best-practices': 'Best Practices & Resources'
         };
 
+        // --- Date, Time, and Color Logic ---
+        const colorClasses = ['bg-sky-700', 'bg-emerald-700', 'bg-amber-700', 'bg-rose-700', 'bg-violet-700', 'bg-cyan-700'];
+        let lastColorIndex = -1;
+
+        function updateDateTime() {
+            const now = new Date();
+            
+            // Update Time
+            timeEl.textContent = now.toLocaleTimeString('en-US');
+
+            // Update Date
+            const dateOptions = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+            dateEl.textContent = now.toLocaleDateString('en-US', dateOptions);
+
+            // Update Color every 10 minutes
+            const newColorIndex = Math.floor(now.getMinutes() / 10);
+            if (newColorIndex !== lastColorIndex) {
+                dateTimeWidget.classList.remove(colorClasses[lastColorIndex]);
+                dateTimeWidget.classList.add(colorClasses[newColorIndex]);
+                lastColorIndex = newColorIndex;
+            }
+        }
+        
         // --- Navigation ---
         menuToggle.addEventListener('click', () => {
             sidebar.classList.toggle('-translate-x-full');
@@ -457,7 +495,7 @@ graph TD
                 section.classList.toggle('active', `#${section.id}` === hash);
             });
 
-            mainTitle.textContent = sectionTitles[hash.substring(1)];
+            mainTitle.textContent = sectionTitles[hash.substring(1)] || 'Power Query Guide';
             const activeNavLink = mainNav.querySelector(`.nav-link[href="${hash}"]`);
             if(activeNavLink) mainSubtitle.textContent = activeNavLink.textContent;
             
@@ -501,7 +539,7 @@ graph TD
         });
         
         window.addEventListener('popstate', () => switchContent(window.location.hash));
-        switchContent(window.location.hash || '#intro');
+        
 
         // --- Interactive Demos ---
 
@@ -635,9 +673,12 @@ graph TD
             
         });
 
-        // Initialize demos
+        // --- Initializations ---
+        switchContent(window.location.hash || '#intro');
         resetDemo();
         joinControls.querySelector('.join-btn[data-join="inner"]').click();
+        updateDateTime(); // Initial call to set date/time/color
+        setInterval(updateDateTime, 1000); // Update every second
 
         // Use Cases: Chart.js instances
         Chart.defaults.color = '#a1a1aa';
