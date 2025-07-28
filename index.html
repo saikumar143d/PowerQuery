@@ -16,11 +16,12 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <!-- 
         Enhancement Plan:
-        1. Rich Text: Reviewed and enhanced all descriptive text across the page for better engagement and clarity, using more evocative language and emphasis.
-        2. Dynamic Clock: Added a new date and time widget to the bottom-left of the sidebar.
-        3. Clock Styling: Styled the widget in a modern "tab" format, fixed to the bottom of the sidebar.
-        4. Dynamic Colors: Implemented JavaScript logic for the clock widget's background color to cycle through a predefined palette every 10 minutes.
-        5. Real-time Updates: The clock updates every second to show the current time.
+        1.  Rich Text: Reviewed and enhanced all descriptive text across the page for better engagement and clarity, using more evocative language and emphasis.
+        2.  Dynamic Clock: Added a new date and time widget.
+        3.  Responsive Clock: Positioned the clock in the sidebar for desktop and moved it to the header for a better mobile experience.
+        4.  Dynamic Colors: Implemented JavaScript logic for the sidebar clock widget's background color to cycle through a predefined palette every 10 minutes.
+        5.  Real-time Updates: The clock updates every second to show the current time.
+        6.  Mobile Responsiveness: Adjusted padding, grids, and fixed-height elements to ensure all content displays uniformly and cleanly on mobile devices.
     -->
     <style>
         :root {
@@ -50,7 +51,7 @@
         .code-block .function { color: #4ade80; }
         .code-block .string { color: #facc15; }
         .code-block .keyword { color: #f472b6; }
-        .chart-container { position: relative; width: 100%; max-width: 550px; margin-left: auto; margin-right: auto; height: 320px; max-height: 350px; }
+        .chart-container { position: relative; width: 100%; max-width: 550px; margin-left: auto; margin-right: auto; max-height: 350px; }
         .interactive-card { transition: transform 0.2s, box-shadow 0.2s, border-color 0.2s; background-color: var(--bg-secondary); border: 1px solid var(--border-color); }
         .interactive-card:hover { transform: translateY(-4px); box-shadow: 0 8px 25px -3px rgb(255 255 255 / 0.05); border-color: #3f3f46; }
         
@@ -69,6 +70,17 @@
         #datetime-widget { transition: background-color 0.5s ease-in-out; }
 
         @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        
+        /* Media query for smaller screens to make join diagram responsive */
+        @media (max-width: 400px) {
+            .join-diagram { height: 100px; }
+            .join-diagram .circle { width: 80px; height: 80px; font-size: 0.875rem; }
+            .join-diagram .circle-a { left: calc(50% - 55px); }
+            .join-diagram .circle-b { left: calc(50% - 5px); }
+            .join-diagram .result-area { width: 80px; height: 80px; }
+            .join-diagram .result-left { left: calc(50% - 55px); }
+            .join-diagram .result-right { left: calc(50% - 5px); }
+        }
     </style>
 </head>
 <body class="bg-black text-slate-200">
@@ -92,7 +104,8 @@
                     </ul>
                 </nav>
             </div>
-            <div class="mt-auto">
+            <!-- Desktop Date/Time Widget -->
+            <div class="mt-auto hidden md:block">
                  <div id="datetime-widget" class="p-3 rounded-lg text-center text-white font-medium">
                     <div id="time" class="text-lg"></div>
                     <div id="date" class="text-xs opacity-75"></div>
@@ -104,14 +117,21 @@
         <header class="md:hidden fixed top-0 left-0 right-0 bg-black/80 backdrop-blur-sm z-20 border-b border-slate-800">
             <div class="flex items-center justify-between p-4">
                 <h1 class="text-lg font-bold text-white">Power Query Guide</h1>
-                <button id="menu-toggle" class="p-2 text-slate-300">
-                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16m-7 6h7"></path></svg>
-                </button>
+                <div class="flex items-center gap-4">
+                    <!-- Mobile Date/Time Widget -->
+                    <div id="datetime-widget-mobile" class="text-right">
+                        <div id="time-mobile" class="font-semibold text-sm text-white"></div>
+                        <div id="date-mobile" class="text-xs text-slate-400"></div>
+                    </div>
+                    <button id="menu-toggle" class="p-2 text-slate-300">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16m-7 6h7"></path></svg>
+                    </button>
+                </div>
             </div>
         </header>
 
         <!-- Main Content -->
-        <main class="flex-1 md:ml-64 p-6 pt-24 md:pt-10 md:p-10">
+        <main class="flex-1 md:ml-64 p-4 pt-20 md:p-10">
             <header class="mb-10">
                 <h1 id="main-title" class="text-4xl font-bold text-white">Welcome to the Guide</h1>
                 <p id="main-subtitle" class="text-lg text-slate-400 mt-1">Select a topic to begin your journey.</p>
@@ -358,14 +378,14 @@ in
                         <div class="interactive-card p-6 rounded-lg">
                              <h3 class="font-semibold text-xl mb-2">1. Sales Reporting Automation</h3>
                             <p class="mb-4">This workflow combines multiple monthly sales CSVs from a folder, merges them with an Excel-based product lookup table, and groups the data to calculate total sales per category.</p>
-                            <div class="chart-container">
+                            <div class="chart-container h-64 sm:h-80">
                                 <canvas id="sales-report-chart"></canvas>
                             </div>
                         </div>
                         <div class="interactive-card p-6 rounded-lg">
                              <h3 class="font-semibold text-xl mb-2">2. Unpivoting Survey Data</h3>
                             <p class="mb-4">Survey data often comes in a "wide" format (one column per question). Unpivoting transforms it into a "tall" format, making it easy to analyze responses across all questions.</p>
-                             <div class="chart-container">
+                             <div class="chart-container h-64 sm:h-80">
                                 <canvas id="survey-chart"></canvas>
                             </div>
                         </div>
@@ -440,9 +460,15 @@ graph TD
         const contentSections = document.querySelectorAll('.content-section');
         const mainTitle = document.getElementById('main-title');
         const mainSubtitle = document.getElementById('main-subtitle');
+        
+        // Desktop Clock
         const timeEl = document.getElementById('time');
         const dateEl = document.getElementById('date');
         const dateTimeWidget = document.getElementById('datetime-widget');
+
+        // Mobile Clock
+        const timeElMobile = document.getElementById('time-mobile');
+        const dateElMobile = document.getElementById('date-mobile');
 
         const sectionTitles = {
             'intro': 'Introduction to Power Query',
@@ -461,18 +487,29 @@ graph TD
         function updateDateTime() {
             const now = new Date();
             
-            // Update Time
-            timeEl.textContent = now.toLocaleTimeString('en-US');
+            const timeString = now.toLocaleTimeString('en-US');
 
-            // Update Date
-            const dateOptions = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
-            dateEl.textContent = now.toLocaleDateString('en-US', dateOptions);
+            // Update Time for both desktop and mobile
+            if (timeEl) timeEl.textContent = timeString;
+            if (timeElMobile) timeElMobile.textContent = timeString;
 
-            // Update Color every 10 minutes
+            // Update Date (long for desktop, short for mobile)
+            if (dateEl) {
+                const dateOptionsDesktop = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+                dateEl.textContent = now.toLocaleDateString('en-US', dateOptionsDesktop);
+            }
+            if (dateElMobile) {
+                const dateOptionsMobile = { weekday: 'short', month: 'short', day: 'numeric' };
+                dateElMobile.textContent = now.toLocaleDateString('en-US', dateOptionsMobile);
+            }
+
+            // Update Color every 10 minutes for the desktop widget
             const newColorIndex = Math.floor(now.getMinutes() / 10);
             if (newColorIndex !== lastColorIndex) {
-                dateTimeWidget.classList.remove(colorClasses[lastColorIndex]);
-                dateTimeWidget.classList.add(colorClasses[newColorIndex]);
+                 if (dateTimeWidget) {
+                    if (lastColorIndex > -1) dateTimeWidget.classList.remove(colorClasses[lastColorIndex]);
+                    dateTimeWidget.classList.add(colorClasses[newColorIndex]);
+                 }
                 lastColorIndex = newColorIndex;
             }
         }
@@ -499,10 +536,12 @@ graph TD
             const activeNavLink = mainNav.querySelector(`.nav-link[href="${hash}"]`);
             if(activeNavLink) mainSubtitle.textContent = activeNavLink.textContent;
             
+            // Close sidebar on navigation in mobile view
             if (window.innerWidth < 768) {
                 sidebar.classList.add('-translate-x-full');
             }
             
+            // Activate the first sub-nav link in the new section
             const firstSubNavLink = targetSection.querySelector('.sub-nav-link');
             if (firstSubNavLink) {
                 switchSubContent(firstSubNavLink);
@@ -540,7 +579,6 @@ graph TD
         
         window.addEventListener('popstate', () => switchContent(window.location.hash));
         
-
         // --- Interactive Demos ---
 
         // Getting Started: Live Transformation Demo
