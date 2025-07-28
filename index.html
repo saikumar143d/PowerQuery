@@ -1,25 +1,33 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" class="light">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Modern Interactive Guide to Power Query</title>
+    <title>The Ultimate Interactive Guide to Power Query</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script type="module">
+        import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.esm.min.mjs';
+        window.mermaid = mermaid;
+    </script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <!-- Chosen Palette: "Modern Tech" (Neutrals: bg-slate-100, text-slate-800; Primary: blue-600; Accent: teal-500) -->
-    <!-- Application Structure Plan: A responsive layout with a fixed sidebar navigation and a main content area. This structure provides persistent navigation, allowing users to easily jump between complex topics without losing context. The content is broken into thematic sections with interactive cards and live demos to facilitate focused, hands-on learning. This is superior to a simple tab view for a detailed educational tool. -->
-    <!-- Visualization & Content Choices: 1. Transformations Demo: Interactive table with a live M-code viewer. Goal: Connect UI actions to code. 2. Join Types: Visual HTML/CSS diagram with interactive buttons. Goal: Clarify complex concepts visually. 3. Charts: Used for summarizing results in use cases. Goal: Inform & Summarize. 4. M-Code: Presented in styled code blocks with clear explanations. Goal: Educate on advanced topics. All choices avoid SVG/Mermaid and prioritize clarity and interactivity. -->
-    <!-- CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. -->
+    <!-- Chosen Palette: "Deep Dive" (Neutrals: bg-slate-50/bg-slate-900; Primary: indigo-600; Accent: emerald-500) -->
+    <!-- Application Structure Plan: A two-level navigation system is implemented. A primary sidebar for major sections (Intro, Basics, etc.) provides high-level context. Within each section, a secondary tabbed navigation allows users to explore detailed sub-topics (e.g., "What is PQ?", "Why PQ?"). This structure organizes a vast amount of information intuitively. A theme toggle (dark/light) is added for user preference. -->
+    <!-- Visualization & Content Choices: 1. Transformations Demo: Enhanced with live M-code viewer. 2. Join Types: Visual HTML/CSS diagram. 3. Pivot/Unpivot Demo: A new interactive simulation. 4. Mermaid.js: Used for a flowchart in the Use Cases section to visualize a data automation workflow. 5. SVG Icons: Used throughout the UI for clarity and modern aesthetics. All choices are designed to maximize interactivity and understanding. -->
+    <!-- CONFIRMATION: SVG graphics used for icons. Mermaid JS used for a flowchart. -->
     <style>
-        body { font-family: 'Inter', sans-serif; background-color: #f1f5f9; }
+        body { font-family: 'Inter', sans-serif; }
         .nav-link { transition: all 0.2s ease-in-out; }
-        .nav-link.active { background-color: #2563eb; color: white; }
-        .nav-link:not(.active):hover { background-color: #e2e8f0; }
-        .content-section { display: none; animation: fadeIn 0.6s; }
-        .content-section.active { display: block; }
+        .nav-link.active { background-color: #4f46e5; color: white; }
+        .nav-link:not(.active):hover { background-color: #eef2ff; }
+        .dark .nav-link:not(.active):hover { background-color: #312e81; }
+        .sub-nav-link { transition: all 0.2s ease-in-out; border-bottom: 2px solid transparent; }
+        .sub-nav-link.active { border-color: #4f46e5; color: #4f46e5; }
+        .dark .sub-nav-link.active { color: #a5b4fc; border-color: #a5b4fc; }
+        .content-section, .sub-content { display: none; animation: fadeIn 0.5s; }
+        .content-section.active, .sub-content.active { display: block; }
         .code-block { background-color: #1e293b; color: #e2e8f0; padding: 1rem; border-radius: 0.5rem; overflow-x: auto; font-family: 'SF Mono', 'Courier New', monospace; font-size: 0.9em; line-height: 1.6; }
         .code-block .comment { color: #64748b; }
         .code-block .function { color: #34d399; }
@@ -30,18 +38,24 @@
         .interactive-card:hover { transform: translateY(-4px); box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1); }
         .join-diagram .table { border: 2px solid; border-radius: 50%; width: 80px; height: 80px; display: flex; align-items: center; justify-content: center; font-weight: 600; transition: all 0.3s ease; }
         .join-diagram .overlap { position: absolute; }
-        .join-diagram .table-a { border-color: #3b82f6; background-color: #bfdbfe; color: #1e3a8a; }
-        .join-diagram .table-b { border-color: #14b8a6; background-color: #ccfbf1; color: #042f2e; }
+        .join-diagram .table-a { border-color: #4f46e5; background-color: #c7d2fe; color: #312e81; }
+        .join-diagram .table-b { border-color: #10b981; background-color: #a7f3d0; color: #064e3b; }
         .join-diagram .result-area { transition: opacity 0.4s ease; }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
     </style>
 </head>
-<body class="text-slate-800">
+<body class="bg-slate-50 dark:bg-slate-900 text-slate-800 dark:text-slate-200">
 
     <div class="flex min-h-screen">
         <!-- Sidebar Navigation -->
-        <aside id="sidebar" class="w-64 bg-white p-6 border-r border-slate-200 fixed h-full transform -translate-x-full md:translate-x-0 transition-transform duration-300 ease-in-out z-30">
-            <h2 class="text-2xl font-bold text-slate-900 mb-8">Power Query Guide</h2>
+        <aside id="sidebar" class="w-64 bg-white dark:bg-slate-900 p-6 border-r border-slate-200 dark:border-slate-700 fixed h-full transform -translate-x-full md:translate-x-0 transition-transform duration-300 ease-in-out z-30">
+            <div class="flex justify-between items-center mb-8">
+                 <h2 class="text-2xl font-bold text-slate-900 dark:text-white">Power Query</h2>
+                 <button id="theme-toggle" class="p-2 rounded-full hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-500 dark:text-slate-400">
+                    <svg id="theme-icon-light" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"></path></svg>
+                    <svg id="theme-icon-dark" class="w-5 h-5 hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"></path></svg>
+                 </button>
+            </div>
             <nav>
                 <ul class="space-y-2">
                     <li><a href="#intro" class="nav-link active flex items-center p-3 rounded-lg font-medium">Introduction</a></li>
@@ -49,16 +63,17 @@
                     <li><a href="#intermediate" class="nav-link flex items-center p-3 rounded-lg font-medium">Intermediate Concepts</a></li>
                     <li><a href="#advanced" class="nav-link flex items-center p-3 rounded-lg font-medium">Advanced & M Language</a></li>
                     <li><a href="#use-cases" class="nav-link flex items-center p-3 rounded-lg font-medium">Practical Use Cases</a></li>
+                    <li><a href="#best-practices" class="nav-link flex items-center p-3 rounded-lg font-medium">Best Practices</a></li>
                 </ul>
             </nav>
         </aside>
 
         <!-- Mobile Header -->
-        <header class="md:hidden fixed top-0 left-0 right-0 bg-white/80 backdrop-blur-sm z-20 border-b border-slate-200">
+        <header class="md:hidden fixed top-0 left-0 right-0 bg-white/80 dark:bg-slate-900/80 backdrop-blur-sm z-20 border-b border-slate-200 dark:border-slate-700">
             <div class="flex items-center justify-between p-4">
-                <h1 class="text-lg font-bold text-slate-900">Power Query Guide</h1>
-                <button id="menu-toggle" class="p-2">
-                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16m-7 6h7"></path></svg>
+                <h1 class="text-lg font-bold text-slate-900 dark:text-white">Power Query Guide</h1>
+                <button id="menu-toggle" class="p-2 text-slate-600 dark:text-slate-300">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16m-7 6h7"></path></svg>
                 </button>
             </div>
         </header>
@@ -66,27 +81,74 @@
         <!-- Main Content -->
         <main class="flex-1 md:ml-64 p-6 pt-24 md:pt-10 md:p-10">
             <header class="mb-10">
-                <h1 id="main-title" class="text-4xl font-bold text-slate-900">Welcome to the Guide</h1>
-                <p id="main-subtitle" class="text-lg text-slate-600 mt-1">Select a topic to begin your journey.</p>
+                <h1 id="main-title" class="text-4xl font-bold text-slate-900 dark:text-white">Welcome to the Guide</h1>
+                <p id="main-subtitle" class="text-lg text-slate-600 dark:text-slate-400 mt-1">Select a topic to begin your journey.</p>
             </header>
 
             <!-- Introduction Section -->
             <section id="intro" class="content-section active">
-                <div class="bg-white p-8 rounded-lg shadow-md">
-                    <h2 class="text-3xl font-bold mb-4 text-slate-900">What is Power Query?</h2>
-                    <p class="mb-6 text-lg leading-relaxed"><strong>Power Query</strong> is a data transformation engine and a core component of Microsoft's business intelligence suite. It provides a powerful, visual interface to connect to data sources, perform complex cleaning and shaping operations, and load the results for analysis. Think of it as your personal data assistant, automating the tedious 80% of work that is data preparation, so you can focus on the valuable 20% that is analysis and insight.</p>
-                    <div class="grid md:grid-cols-3 gap-6 text-center mb-8">
-                        <div class="p-6 bg-slate-50 rounded-lg border border-slate-200">
-                            <h3 class="font-bold text-xl text-blue-600 mb-2">1. Extract</h3>
-                            <p>Connect to hundreds of sources—from a simple Excel file on your desktop to a complex Salesforce database in the cloud.</p>
+                <nav class="sub-nav border-b border-slate-200 dark:border-slate-700 mb-6">
+                    <ul class="flex space-x-6 text-slate-500 dark:text-slate-400">
+                        <li><button class="sub-nav-link py-3 font-medium active" data-sub-target="intro-what">What is it?</button></li>
+                        <li><button class="sub-nav-link py-3 font-medium" data-sub-target="intro-why">Why use it?</button></li>
+                        <li><button class="sub-nav-link py-3 font-medium" data-sub-target="intro-where">Where is it?</button></li>
+                        <li><button class="sub-nav-link py-3 font-medium" data-sub-target="intro-compare">Comparison</button></li>
+                    </ul>
+                </nav>
+                <div id="intro-what" class="sub-content active">
+                    <div class="bg-white dark:bg-slate-900 p-8 rounded-lg shadow-md">
+                        <h2 class="text-3xl font-bold mb-4">What is Power Query?</h2>
+                        <p class="mb-6 text-lg leading-relaxed"><strong>Power Query</strong> is a data transformation and data preparation engine. It provides a graphical user interface for getting data from sources and an editor for applying transformations. Because the engine is available in many products and services, the data preparation experience, and the queries you create, are portable across them.</p>
+                        <p class="text-lg leading-relaxed">Think of it as your personal data assistant, automating the tedious 80% of work that is data preparation, so you can focus on the valuable 20% that is analysis and insight.</p>
+                    </div>
+                </div>
+                <div id="intro-why" class="sub-content">
+                     <div class="bg-white dark:bg-slate-900 p-8 rounded-lg shadow-md">
+                        <h3 class="text-3xl font-bold mb-4">Why is Power Query Important?</h3>
+                        <ul class="list-disc list-inside space-y-3 text-lg">
+                            <li><strong>Automates Repetitive Work:</strong> Record a set of cleaning steps once. When new data arrives, just click "Refresh" to repeat the entire process flawlessly in seconds.</li>
+                            <li><strong>Democratizes Data Preparation:</strong> Empowers business users, analysts, and citizen developers to perform complex data transformations that previously required IT or database specialists.</li>
+                            <li><strong>Ensures Consistency and Accuracy:</strong> By creating a repeatable process, you eliminate manual errors and ensure that business rules are applied consistently every time.</li>
+                            <li><strong>Handles Diverse & Messy Data:</strong> Seamlessly connect to hundreds of data sources and apply over 300 transformations to handle any data cleaning challenge you can imagine.</li>
+                        </ul>
+                    </div>
+                </div>
+                <div id="intro-where" class="sub-content">
+                    <div class="bg-white dark:bg-slate-900 p-8 rounded-lg shadow-md">
+                        <h3 class="text-3xl font-bold mb-4">Where is Power Query Used?</h3>
+                        <p class="mb-6 text-lg">Power Query is the standard data preparation tool across the Microsoft ecosystem, ensuring a consistent experience wherever you work:</p>
+                        <div class="grid grid-cols-2 md:grid-cols-3 gap-4 text-center">
+                            <div class="bg-slate-100 dark:bg-slate-800 p-4 rounded-lg font-medium">Microsoft Excel</div>
+                            <div class="bg-slate-100 dark:bg-slate-800 p-4 rounded-lg font-medium">Power BI Desktop</div>
+                            <div class="bg-slate-100 dark:bg-slate-800 p-4 rounded-lg font-medium">Power Platform</div>
+                            <div class="bg-slate-100 dark:bg-slate-800 p-4 rounded-lg font-medium">Azure Data Factory</div>
+                            <div class="bg-slate-100 dark:bg-slate-800 p-4 rounded-lg font-medium">SQL Server Analysis Services</div>
+                            <div class="bg-slate-100 dark:bg-slate-800 p-4 rounded-lg font-medium">Dataverse</div>
                         </div>
-                        <div class="p-6 bg-slate-50 rounded-lg border border-slate-200">
-                            <h3 class="font-bold text-xl text-teal-600 mb-2">2. Transform</h3>
-                            <p>Visually clean, reshape, and combine data. Every click records a repeatable step, ensuring consistency and saving time.</p>
-                        </div>
-                        <div class="p-6 bg-slate-50 rounded-lg border border-slate-200">
-                            <h3 class="font-bold text-xl text-indigo-600 mb-2">3. Load</h3>
-                            <p>Load the perfected data into Excel or Power BI, creating a reliable foundation for your reports and dashboards.</p>
+                    </div>
+                </div>
+                <div id="intro-compare" class="sub-content">
+                    <div class="bg-white dark:bg-slate-900 p-8 rounded-lg shadow-md">
+                        <h3 class="text-3xl font-bold mb-4">Power Query vs. Other Tools</h3>
+                        <div class="overflow-x-auto">
+                            <table class="w-full text-left">
+                                <thead class="bg-slate-100 dark:bg-slate-800">
+                                    <tr>
+                                        <th class="p-3 font-semibold">Feature</th>
+                                        <th class="p-3 font-semibold text-indigo-600 dark:text-indigo-400">Power Query</th>
+                                        <th class="p-3 font-semibold">Excel Formulas</th>
+                                        <th class="p-3 font-semibold">VBA</th>
+                                        <th class="p-3 font-semibold">SQL</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr class="border-b dark:border-slate-700"><td class="p-3">UI-based</td><td class="p-3 text-emerald-600 font-bold">✅</td><td class="p-3">✅</td><td class="p-3">❌</td><td class="p-3">❌</td></tr>
+                                    <tr class="border-b dark:border-slate-700"><td class="p-3">Reusability</td><td class="p-3 text-emerald-600 font-bold">✅</td><td class="p-3">❌</td><td class="p-3">✅</td><td class="p-3">✅</td></tr>
+                                    <tr class="border-b dark:border-slate-700"><td class="p-3">Data Source Variety</td><td class="p-3 text-emerald-600 font-bold">✅</td><td class="p-3">❌</td><td class="p-3">✅</td><td class="p-3">Limited</td></tr>
+                                    <tr class="border-b dark:border-slate-700"><td class="p-3">Code-free for Basic Tasks</td><td class="p-3 text-emerald-600 font-bold">✅</td><td class="p-3">✅</td><td class="p-3">❌</td><td class="p-3">❌</td></tr>
+                                    <tr><td class="p-3">Advanced Scripting</td><td class="p-3 text-emerald-600 font-bold">✅ (M)</td><td class="p-3">❌</td><td class="p-3">✅</td><td class="p-3">✅</td></tr>
+                                </tbody>
+                            </table>
                         </div>
                     </div>
                 </div>
@@ -94,25 +156,25 @@
 
             <!-- Getting Started Section -->
             <section id="getting-started" class="content-section">
-                <div class="bg-white p-8 rounded-lg shadow-md">
-                    <h2 class="text-3xl font-bold mb-2 text-slate-900">Live Transformation Demo</h2>
+                 <div class="bg-white dark:bg-slate-900 p-8 rounded-lg shadow-md">
+                    <h2 class="text-3xl font-bold mb-2">Live Transformation Demo</h2>
                     <p class="mb-6 text-lg">This interactive demo simulates the Power Query editor. Click a transformation button to manipulate the table. Notice how the M Code below the table updates with each step, showing you exactly what Power Query writes behind the scenes.</p>
                     <div class="grid lg:grid-cols-5 gap-8">
                         <div class="lg:col-span-2">
                             <h3 class="text-xl font-semibold mb-3">Transformation Steps</h3>
                             <div class="flex flex-col space-y-2">
-                                <button id="reset-btn" class="w-full text-left p-3 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition font-semibold">Reset Data</button>
-                                <button class="transform-btn interactive-card w-full text-left p-3 bg-slate-100 rounded-md" data-transform="remove-column">1. Remove a Column</button>
-                                <button class="transform-btn interactive-card w-full text-left p-3 bg-slate-100 rounded-md" data-transform="filter-rows">2. Filter Rows</button>
-                                <button class="transform-btn interactive-card w-full text-left p-3 bg-slate-100 rounded-md" data-transform="add-column">3. Add Conditional Column</button>
-                                <button class="transform-btn interactive-card w-full text-left p-3 bg-slate-100 rounded-md" data-transform="group-by">4. Group and Aggregate</button>
+                                <button id="reset-btn" class="w-full text-left p-3 bg-indigo-600 text-white rounded-md hover:bg-indigo-700 transition font-semibold">Reset Data</button>
+                                <button class="transform-btn interactive-card w-full text-left p-3" data-transform="remove-column">1. Remove a Column</button>
+                                <button class="transform-btn interactive-card w-full text-left p-3" data-transform="filter-rows">2. Filter Rows</button>
+                                <button class="transform-btn interactive-card w-full text-left p-3" data-transform="add-column">3. Add Conditional Column</button>
+                                <button class="transform-btn interactive-card w-full text-left p-3" data-transform="group-by">4. Group and Aggregate</button>
                             </div>
                         </div>
                         <div class="lg:col-span-3">
                             <h3 id="table-title" class="text-xl font-semibold mb-3">Data Preview</h3>
-                            <div class="overflow-x-auto border border-slate-200 rounded-lg mb-4">
-                                <table id="demo-table" class="w-full text-sm text-left text-slate-600">
-                                    <thead id="demo-table-head" class="text-xs text-slate-700 uppercase bg-slate-50"></thead>
+                            <div class="overflow-x-auto border border-slate-200 dark:border-slate-700 rounded-lg mb-4">
+                                <table id="demo-table" class="w-full text-sm text-left text-slate-600 dark:text-slate-400">
+                                    <thead id="demo-table-head" class="text-xs uppercase bg-slate-50 dark:bg-slate-800"></thead>
                                     <tbody id="demo-table-body"></tbody>
                                 </table>
                             </div>
@@ -124,36 +186,50 @@
                     </div>
                 </div>
             </section>
-
+            
             <!-- Intermediate Section -->
             <section id="intermediate" class="content-section">
-                <div class="bg-white p-8 rounded-lg shadow-md">
-                    <h2 class="text-3xl font-bold mb-2 text-slate-900">Visualizing Merge Joins</h2>
-                    <p class="mb-6 text-lg">Merging (or joining) tables is a fundamental concept. Power Query offers several "Join Kinds" to control how tables are combined. Select a join type below to see a visual representation of how it works and what rows are returned.</p>
+                <div class="bg-white dark:bg-slate-900 p-8 rounded-lg shadow-md mb-8">
+                    <h2 class="text-3xl font-bold mb-2">Visualizing Merge Joins</h2>
+                    <p class="mb-6 text-lg">Merging tables is a fundamental concept. Power Query offers several "Join Kinds" to control how tables are combined. Select a join type below to see a visual representation of how it works and what rows are returned.</p>
                     <div class="flex flex-wrap justify-center gap-2 mb-8">
-                        <button class="join-btn p-2 px-4 bg-blue-100 text-blue-800 rounded-full text-sm font-semibold" data-join="inner">Inner</button>
-                        <button class="join-btn p-2 px-4 bg-blue-100 text-blue-800 rounded-full text-sm font-semibold" data-join="left">Left Outer</button>
-                        <button class="join-btn p-2 px-4 bg-blue-100 text-blue-800 rounded-full text-sm font-semibold" data-join="full">Full Outer</button>
-                        <button class="join-btn p-2 px-4 bg-blue-100 text-blue-800 rounded-full text-sm font-semibold" data-join="left-anti">Left Anti</button>
+                        <button class="join-btn p-2 px-4 bg-indigo-100 dark:bg-indigo-900/50 text-indigo-800 dark:text-indigo-300 rounded-full text-sm font-semibold" data-join="inner">Inner</button>
+                        <button class="join-btn p-2 px-4 bg-indigo-100 dark:bg-indigo-900/50 text-indigo-800 dark:text-indigo-300 rounded-full text-sm font-semibold" data-join="left">Left Outer</button>
+                        <button class="join-btn p-2 px-4 bg-indigo-100 dark:bg-indigo-900/50 text-indigo-800 dark:text-indigo-300 rounded-full text-sm font-semibold" data-join="full">Full Outer</button>
+                        <button class="join-btn p-2 px-4 bg-indigo-100 dark:bg-indigo-900/50 text-indigo-800 dark:text-indigo-300 rounded-full text-sm font-semibold" data-join="left-anti">Left Anti</button>
                     </div>
                     <div class="join-diagram relative h-48 flex justify-center items-center">
                         <div class="table table-a overlap" style="left: calc(50% - 60px);">Table A</div>
                         <div class="table table-b overlap" style="left: calc(50% - 20px);">Table B</div>
-                        <div id="join-result-left" class="result-area table table-a overlap opacity-0" style="left: calc(50% - 60px); background-color: #93c5fd;"></div>
-                        <div id="join-result-right" class="result-area table table-b overlap opacity-0" style="left: calc(50% - 20px); background-color: #5eead4;"></div>
-                        <div id="join-result-center" class="result-area absolute w-10 h-20 bg-teal-300 opacity-0" style="left: calc(50% - 20px); border-radius: 0 100% 100% 0 / 0 50% 50% 0;"></div>
+                        <div id="join-result-left" class="result-area table table-a overlap opacity-0" style="left: calc(50% - 60px); background-color: #a5b4fc;"></div>
+                        <div id="join-result-right" class="result-area table table-b overlap opacity-0" style="left: calc(50% - 20px); background-color: #6ee7b7;"></div>
+                        <div id="join-result-center" class="result-area absolute w-10 h-20 bg-emerald-300 opacity-0" style="left: calc(50% - 20px); border-radius: 0 100% 100% 0 / 0 50% 50% 0;"></div>
                     </div>
-                    <p id="join-explanation" class="text-center mt-4 text-slate-600 font-medium h-10"></p>
+                    <p id="join-explanation" class="text-center mt-4 text-slate-600 dark:text-slate-400 font-medium h-10"></p>
+                </div>
+                <div class="bg-white dark:bg-slate-900 p-8 rounded-lg shadow-md">
+                    <h2 class="text-3xl font-bold mb-2">Pivot vs. Unpivot Simulation</h2>
+                    <p class="mb-6 text-lg">Pivoting and Unpivoting are powerful transformations for reshaping your data. Unpivoting turns "wide" data into "tall" data, which is better for analysis. Pivoting does the reverse. Use the buttons below to see this in action.</p>
+                    <div class="flex justify-center space-x-4 mb-4">
+                        <button id="unpivot-btn" class="p-3 bg-emerald-500 text-white rounded-md font-semibold">Unpivot Data</button>
+                        <button id="pivot-btn" class="p-3 bg-rose-500 text-white rounded-md font-semibold">Pivot Data</button>
+                    </div>
+                    <div class="overflow-x-auto border border-slate-200 dark:border-slate-700 rounded-lg">
+                        <table id="pivot-table" class="w-full text-sm text-left text-slate-600 dark:text-slate-400">
+                            <thead id="pivot-table-head" class="text-xs uppercase bg-slate-50 dark:bg-slate-800"></thead>
+                            <tbody id="pivot-table-body"></tbody>
+                        </table>
+                    </div>
                 </div>
             </section>
 
             <!-- Advanced Section -->
             <section id="advanced" class="content-section">
-                <div class="bg-white p-8 rounded-lg shadow-md">
-                    <h2 class="text-3xl font-bold mb-2 text-slate-900">Advanced & M Language</h2>
+                 <div class="bg-white dark:bg-slate-900 p-8 rounded-lg shadow-md">
+                    <h2 class="text-3xl font-bold mb-2">Advanced & M Language</h2>
                     <p class="mb-6 text-lg">Dive deeper into the Power Query M language to unlock custom logic, create reusable functions, and optimize performance for massive datasets.</p>
                     <div class="space-y-4">
-                        <div class="interactive-card bg-slate-50 p-6 rounded-lg border border-slate-200">
+                        <div class="interactive-card p-6 rounded-lg">
                             <h3 class="font-semibold text-xl mb-2">Creating Custom Functions</h3>
                             <p class="mb-4">Encapsulate repeatable logic into your own functions. This example creates a function to standardize text by trimming whitespace and converting it to proper case, while safely handling null values.</p>
                             <div class="code-block">
@@ -167,7 +243,7 @@ in
     Result</code></pre>
                             </div>
                         </div>
-                        <div class="interactive-card bg-slate-50 p-6 rounded-lg border border-slate-200">
+                        <div class="interactive-card p-6 rounded-lg">
                             <h3 class="font-semibold text-xl mb-2">Performance & Query Folding</h3>
                             <p class="mb-2"><strong>Query Folding</strong> is the secret to high performance. It's the process of translating your transformation steps (like filtering) into the native language of your data source (e.g., SQL). This means the source database does the heavy lifting before sending the data to you.</p>
                             <p><strong>Tip:</strong> Steps like filtering, sorting, and removing columns at the beginning of your query are likely to fold. Custom M code often stops folding.</p>
@@ -178,18 +254,18 @@ in
 
             <!-- Use Cases Section -->
             <section id="use-cases" class="content-section">
-                 <div class="bg-white p-8 rounded-lg shadow-md">
-                    <h2 class="text-3xl font-bold mb-2 text-slate-900">Practical Use Cases</h2>
+                <div class="bg-white dark:bg-slate-900 p-8 rounded-lg shadow-md">
+                    <h2 class="text-3xl font-bold mb-2">Practical Use Cases</h2>
                     <p class="mb-6 text-lg">Let's apply these concepts to real-world scenarios to see the power of an automated workflow.</p>
                     <div class="grid md:grid-cols-2 gap-8">
-                        <div class="interactive-card bg-slate-50 p-6 rounded-lg border border-slate-200">
+                        <div class="interactive-card p-6 rounded-lg">
                              <h3 class="font-semibold text-xl mb-2">1. Sales Reporting Automation</h3>
                             <p class="mb-4">This workflow combines multiple monthly sales CSVs from a folder, merges them with an Excel-based product lookup table, and groups the data to calculate total sales per category.</p>
                             <div class="chart-container">
                                 <canvas id="sales-report-chart"></canvas>
                             </div>
                         </div>
-                        <div class="interactive-card bg-slate-50 p-6 rounded-lg border border-slate-200">
+                        <div class="interactive-card p-6 rounded-lg">
                              <h3 class="font-semibold text-xl mb-2">2. Unpivoting Survey Data</h3>
                             <p class="mb-4">Survey data often comes in a "wide" format (one column per question). Unpivoting transforms it into a "tall" format, making it easy to analyze responses across all questions.</p>
                              <div class="chart-container">
@@ -197,9 +273,57 @@ in
                             </div>
                         </div>
                     </div>
+                    <div class="interactive-card p-6 rounded-lg mt-8">
+                        <h3 class="font-semibold text-xl mb-2">3. Data Automation Workflow</h3>
+                        <p class="mb-4">Here is a visual representation of a typical Power Query automation process using a Mermaid flowchart.</p>
+                        <pre class="mermaid bg-slate-100 dark:bg-slate-800 p-4 rounded-lg text-center">
+                            graph TD
+                                A[Source Files: Folder of CSVs] --> B{Power Query};
+                                C[Lookup Table: Excel File] --> B;
+                                B --> D[1. Combine Files];
+                                D --> E[2. Clean & Transform Data];
+                                E --> F[3. Merge with Lookup Data];
+                                F --> G[4. Group & Aggregate];
+                                G --> H[Final Output: Power BI Dashboard];
+                        </pre>
+                    </div>
                 </div>
             </section>
 
+            <!-- Best Practices Section -->
+            <section id="best-practices" class="content-section">
+                <div class="bg-white dark:bg-slate-900 p-8 rounded-lg shadow-md mb-8">
+                    <h2 class="text-3xl font-bold mb-2">Best Practices & Optimization</h2>
+                     <div class="grid md:grid-cols-2 gap-8">
+                        <div>
+                            <h3 class="text-xl font-semibold mb-2">Query Organization</h3>
+                            <ul class="list-disc list-inside space-y-2">
+                                <li>Use clear naming conventions (e.g., `SalesData`, `ProductLookup`).</li>
+                                <li>Rename steps to be descriptive (e.g., `RemovedInactiveProducts`).</li>
+                                <li>Group related queries into folders.</li>
+                                <li>Disable load for staging/intermediate queries to save memory.</li>
+                            </ul>
+                        </div>
+                        <div>
+                            <h3 class="text-xl font-semibold mb-2">Performance Tips</h3>
+                            <ul class="list-disc list-inside space-y-2">
+                                <li>Filter data as early as possible to maximize query folding.</li>
+                                <li>Remove unnecessary columns at the start of your query.</li>
+                                <li>Be mindful of steps that break folding (e.g., custom M code).</li>
+                                <li>Use `Table.Buffer()` strategically to load data into memory if it's accessed multiple times.</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+                <div class="bg-white dark:bg-slate-900 p-8 rounded-lg shadow-md">
+                    <h2 class="text-3xl font-bold mb-2">Official Resources</h2>
+                    <ul class="list-disc list-inside space-y-2">
+                        <li><a href="https://docs.microsoft.com/en-us/power-query/" target="_blank" class="text-indigo-600 dark:text-indigo-400 hover:underline">Microsoft Power Query Docs</a></li>
+                        <li><a href="https://docs.microsoft.com/en-us/powerquery-m/power-query-m-function-reference" target="_blank" class="text-indigo-600 dark:text-indigo-400 hover:underline">Power Query M Language Reference</a></li>
+                        <li><a href="https://community.powerbi.com/" target="_blank" class="text-indigo-600 dark:text-indigo-400 hover:underline">Power BI Community Forum</a></li>
+                    </ul>
+                </div>
+            </section>
         </main>
     </div>
 
@@ -211,6 +335,41 @@ in
             const contentSections = document.querySelectorAll('.content-section');
             const mainTitle = document.getElementById('main-title');
             const mainSubtitle = document.getElementById('main-subtitle');
+            const themeToggle = document.getElementById('theme-toggle');
+            const lightIcon = document.getElementById('theme-icon-light');
+            const darkIcon = document.getElementById('theme-icon-dark');
+
+            // Theme switcher
+            const applyTheme = (theme) => {
+                if (theme === 'dark') {
+                    document.documentElement.classList.add('dark');
+                    lightIcon.classList.add('hidden');
+                    darkIcon.classList.remove('hidden');
+                } else {
+                    document.documentElement.classList.remove('dark');
+                    lightIcon.classList.remove('hidden');
+                    darkIcon.classList.add('hidden');
+                }
+                // Re-render Mermaid diagrams with the correct theme
+                if (window.mermaid) {
+                    document.querySelectorAll('.mermaid').forEach((elem) => {
+                        const graphDefinition = elem.textContent;
+                        elem.removeAttribute('data-processed');
+                        elem.innerHTML = graphDefinition;
+                    });
+                    window.mermaid.initialize({ startOnLoad: false, theme: theme === 'dark' ? 'dark' : 'neutral' });
+                    window.mermaid.run();
+                }
+            };
+            
+            themeToggle.addEventListener('click', () => {
+                const currentTheme = localStorage.getItem('theme') || 'light';
+                const newTheme = currentTheme === 'light' ? 'dark' : 'light';
+                localStorage.setItem('theme', newTheme);
+                applyTheme(newTheme);
+            });
+            
+            applyTheme(localStorage.getItem('theme') || 'light');
 
             menuToggle.addEventListener('click', () => {
                 sidebar.classList.toggle('-translate-x-full');
@@ -221,7 +380,8 @@ in
                 'getting-started': 'Getting Started: The Basics',
                 'intermediate': 'Intermediate Concepts',
                 'advanced': 'Advanced & M Language',
-                'use-cases': 'Practical Use Cases'
+                'use-cases': 'Practical Use Cases',
+                'best-practices': 'Best Practices & Resources'
             };
 
             function switchContent(hash) {
@@ -238,7 +398,26 @@ in
                 if (window.innerWidth < 768) {
                     sidebar.classList.add('-translate-x-full');
                 }
+                
+                const firstSubNavLink = document.querySelector(`${hash} .sub-nav-link`);
+                if (firstSubNavLink) {
+                    switchSubContent(firstSubNavLink);
+                }
             }
+            
+            function switchSubContent(target) {
+                const parentNav = target.closest('.sub-nav');
+                parentNav.querySelectorAll('.sub-nav-link').forEach(link => link.classList.remove('active'));
+                target.classList.add('active');
+                
+                const parentSection = target.closest('.content-section');
+                parentSection.querySelectorAll('.sub-content').forEach(content => content.classList.remove('active'));
+                parentSection.querySelector(`#${target.dataset.subTarget}`).classList.add('active');
+            }
+
+            document.querySelectorAll('.sub-nav-link').forEach(link => {
+                link.addEventListener('click', (e) => switchSubContent(e.target));
+            });
 
             navLinks.forEach(link => {
                 link.addEventListener('click', (e) => {
@@ -265,10 +444,10 @@ in
             const tableTitle = document.getElementById('table-title');
             const mCodeViewer = document.getElementById('m-code-viewer');
 
-            function renderTable(data, title) {
-                tableTitle.textContent = title;
-                tableHead.innerHTML = '';
-                tableBody.innerHTML = '';
+            function renderTable(data, title, tableHeadEl, tableBodyEl) {
+                if(title) tableTitle.textContent = title;
+                tableHeadEl.innerHTML = '';
+                tableBodyEl.innerHTML = '';
                 if (data.length === 0) return;
 
                 const headers = Object.keys(data[0]);
@@ -279,18 +458,18 @@ in
                     th.textContent = header;
                     headerRow.appendChild(th);
                 });
-                tableHead.appendChild(headerRow);
+                tableHeadEl.appendChild(headerRow);
 
                 data.forEach(row => {
                     const tr = document.createElement('tr');
-                    tr.className = 'border-b last:border-b-0 border-slate-200';
+                    tr.className = 'border-b dark:border-slate-700 last:border-b-0';
                     headers.forEach(header => {
                         const td = document.createElement('td');
                         td.className = 'p-3';
                         td.textContent = row[header];
                         tr.appendChild(td);
                     });
-                    tableBody.appendChild(tr);
+                    tableBodyEl.appendChild(tr);
                 });
             }
             
@@ -300,7 +479,7 @@ in
 
             document.getElementById('reset-btn').addEventListener('click', () => {
                 currentData = JSON.parse(JSON.stringify(initialData));
-                renderTable(currentData, 'Original Data');
+                renderTable(currentData, 'Original Data', tableHead, tableBody);
                 updateMCode(`<span class="comment">// Data reset to its original state.</span>`);
             });
 
@@ -337,12 +516,12 @@ in
                             mCode = `<span class="function">Table.Group</span>(PreviousStep, {<span class="string">"Category"</span>}, {{<span class="string">"TotalStock"</span>, <span class="keyword">each</span> <span class="function">List.Sum</span>([Stock]), <span class="keyword">type number</span>}})`
                             break;
                     }
-                    renderTable(currentData, title);
+                    renderTable(currentData, title, tableHead, tableBody);
                     updateMCode(mCode);
                 });
             });
 
-            renderTable(currentData, 'Data Preview');
+            renderTable(currentData, 'Data Preview', tableHead, tableBody);
 
             // Join Diagram Logic
             const joinButtons = document.querySelectorAll('.join-btn');
@@ -367,7 +546,31 @@ in
                     resultRight.style.opacity = (joinType === 'full') ? '0.5' : '0';
                 });
             });
-            joinButtons[0].click(); // Activate first button
+            joinButtons[0].click();
+
+            // Pivot/Unpivot Demo
+            const pivotTableHead = document.getElementById('pivot-table-head');
+            const pivotTableBody = document.getElementById('pivot-table-body');
+            const unpivotBtn = document.getElementById('unpivot-btn');
+            const pivotBtn = document.getElementById('pivot-btn');
+
+            const wideData = [
+                { Product: 'Apple', 'Jan': 100, 'Feb': 120, 'Mar': 150 },
+                { Product: 'Banana', 'Jan': 80, 'Feb': 90, 'Mar': 110 }
+            ];
+            const tallData = [
+                { Product: 'Apple', Month: 'Jan', Sales: 100 },
+                { Product: 'Apple', Month: 'Feb', Sales: 120 },
+                { Product: 'Apple', Month: 'Mar', Sales: 150 },
+                { Product: 'Banana', Month: 'Jan', Sales: 80 },
+                { Product: 'Banana', Month: 'Feb', Sales: 90 },
+                { Product: 'Banana', Month: 'Mar', Sales: 110 },
+            ];
+            
+            unpivotBtn.addEventListener('click', () => renderTable(tallData, null, pivotTableHead, pivotTableBody));
+            pivotBtn.addEventListener('click', () => renderTable(wideData, null, pivotTableHead, pivotTableBody));
+            renderTable(wideData, null, pivotTableHead, pivotTableBody);
+
 
             // Chart.js instances
             new Chart(document.getElementById('sales-report-chart'), {
@@ -377,7 +580,7 @@ in
                     datasets: [{
                         label: 'Total Sales',
                         data: [12000, 9500, 15000, 6000],
-                        backgroundColor: '#3b82f6',
+                        backgroundColor: '#4f46e5',
                         borderRadius: 4,
                     }]
                 },
@@ -390,7 +593,7 @@ in
                     labels: ['Very Satisfied', 'Satisfied', 'Neutral', 'Unsatisfied'],
                     datasets: [{
                         data: [450, 800, 300, 150],
-                        backgroundColor: ['#14b8a6', '#5eead4', '#a7f3d0', '#fde68a'],
+                        backgroundColor: ['#10b981', '#34d399', '#6ee7b7', '#a7f3d0'],
                         borderColor: '#ffffff',
                     }]
                 },
